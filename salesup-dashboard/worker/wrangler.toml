@@ -1,0 +1,7 @@
+name = "salesup-sheets-proxy"
+main = "sheets-proxy.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# These will be set as secrets via: wrangler secret put GOOGLE_SERVICE_ACCOUNT_KEY
+# and: wrangler secret put SHEET_ID
