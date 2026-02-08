@@ -337,16 +337,26 @@ function AiAssistant(){
   const wc=msg.trim().split(/\s+/).filter(w=>w.length>0).length;
   const canSend=wc>0&&wc<=500&&!loading;
 
+  const getSessionId=()=>{
+    let sid=localStorage.getItem('ai_session_id');
+    if(!sid){
+      sid='session_'+Date.now()+'_'+Math.random().toString(36).slice(2,11);
+      localStorage.setItem('ai_session_id',sid);
+    }
+    return sid;
+  };
+
   const sendMessage=async()=>{
     if(!canSend)return;
     const userMsg=msg.trim();
     setMessages(p=>[...p,{role:"user",content:userMsg}]);
     setMsg("");setError(null);setLoading(true);
     try{
+      const sessionId=getSessionId();
       const res=await fetch('https://samtomations.app.n8n.cloud/webhook/bcc35509-b729-448f-a069-2f6d46ac411d',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({message:userMsg})
+        body:JSON.stringify({message:userMsg,sessionId:sessionId})
       });
       console.log('Response status:',res.status);
       console.log('Response headers:',res.headers);
