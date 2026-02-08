@@ -348,18 +348,27 @@ function AiAssistant(){
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({message:userMsg})
       });
+      console.log('Response status:',res.status);
+      console.log('Response headers:',res.headers);
       if(!res.ok)throw new Error('Error al conectar con el asistente ('+res.status+')');
-      const contentType=res.headers.get('content-type')||'';
-      let assistantMsg;
-      if(contentType.includes('application/json')){
-        const data=await res.json();
-        assistantMsg=data.Respuesta||data.respuesta||data.response||data.message||data.text||data.output||JSON.stringify(data);
-      }else{
-        assistantMsg=await res.text();
+      const rawText=await res.text();
+      console.log('Raw response:',rawText);
+      console.log('Response length:',rawText.length);
+      if(!rawText||rawText.trim()===''){
+        throw new Error('El webhook devolvió una respuesta vacía. Verifica que el workflow en n8n esté activo y funcionando correctamente.');
       }
-      if(!assistantMsg||assistantMsg.trim()==='')throw new Error('El webhook devolvió una respuesta vacía');
+      let assistantMsg;
+      try{
+        const data=JSON.parse(rawText);
+        console.log('Parsed JSON:',data);
+        assistantMsg=data.Respuesta||data.respuesta||data.response||data.message||data.text||data.output||JSON.stringify(data);
+      }catch(parseErr){
+        console.log('JSON parse failed, using raw text');
+        assistantMsg=rawText;
+      }
       setMessages(p=>[...p,{role:"assistant",content:assistantMsg}]);
     }catch(e){
+      console.error('Full error:',e);
       setError(e.message);
       setMessages(p=>[...p,{role:"assistant",content:"❌ Error: "+e.message}]);
     }finally{setLoading(false);}
