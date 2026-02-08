@@ -353,7 +353,7 @@ function AiAssistant(){
     setMsg("");setError(null);setLoading(true);
     try{
       const sessionId=getSessionId();
-      const res=await fetch('https://samtomations.app.n8n.cloud/webhook/bcc35509-b729-448f-a069-2f6d46ac411d',{
+      const res=await fetch('https://samtomations.app.n8n.cloud/webhook-test/bcc35509-b729-448f-a069-2f6d46ac411d',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({message:userMsg,sessionId:sessionId})
