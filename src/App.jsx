@@ -584,7 +584,13 @@ function useSheetData(){
     finally{setLoading(false);}
   };
 
-  useEffect(()=>{fetchData();},[]);
+  useEffect(()=>{
+    fetchData();
+    const interval=setInterval(()=>{
+      fetchData();
+    },5*60*1000);
+    return()=>clearInterval(interval);
+  },[]);
 
   return{NR,setNR,CK,setCK,SK,setSK,loading,error,lastUpdate,refresh:fetchData};
 }
