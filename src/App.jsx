@@ -348,9 +348,16 @@ function AiAssistant(){
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({message:userMsg})
       });
-      if(!res.ok)throw new Error('Error al conectar con el asistente');
-      const data=await res.json();
-      const assistantMsg=data.response||data.message||data.text||JSON.stringify(data);
+      if(!res.ok)throw new Error('Error al conectar con el asistente ('+res.status+')');
+      const contentType=res.headers.get('content-type')||'';
+      let assistantMsg;
+      if(contentType.includes('application/json')){
+        const data=await res.json();
+        assistantMsg=data.response||data.message||data.text||data.output||JSON.stringify(data);
+      }else{
+        assistantMsg=await res.text();
+      }
+      if(!assistantMsg||assistantMsg.trim()==='')throw new Error('El webhook devolvió una respuesta vacía');
       setMessages(p=>[...p,{role:"assistant",content:assistantMsg}]);
     }catch(e){
       setError(e.message);
