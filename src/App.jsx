@@ -331,6 +331,66 @@ function SetterDB({cfg,SK}){
   </div>;
 }
 
+/* ═══ ASISTENTE IA ═══ */
+function AiAssistant(){
+  const [msg,setMsg]=useState("");const [messages,setMessages]=useState([]);const [loading,setLoading]=useState(false);const [error,setError]=useState(null);
+  const wc=msg.trim().split(/\s+/).filter(w=>w.length>0).length;
+  const canSend=wc>0&&wc<=500&&!loading;
+
+  const sendMessage=async()=>{
+    if(!canSend)return;
+    const userMsg=msg.trim();
+    setMessages(p=>[...p,{role:"user",content:userMsg}]);
+    setMsg("");setError(null);setLoading(true);
+    try{
+      const res=await fetch('https://samtomations.app.n8n.cloud/webhook/bcc35509-b729-448f-a069-2f6d46ac411d',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({message:userMsg})
+      });
+      if(!res.ok)throw new Error('Error al conectar con el asistente');
+      const data=await res.json();
+      const assistantMsg=data.response||data.message||data.text||JSON.stringify(data);
+      setMessages(p=>[...p,{role:"assistant",content:assistantMsg}]);
+    }catch(e){
+      setError(e.message);
+      setMessages(p=>[...p,{role:"assistant",content:"❌ Error: "+e.message}]);
+    }finally{setLoading(false);}
+  };
+
+  return <div className="space-y-3">
+    <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-6">
+      <div className="text-lg font-bold text-yellow-400 mb-1 flex items-center gap-2"><span>🤖</span><span>Asistente IA</span></div>
+      <div className="text-xs text-neutral-500 mb-4">Haz preguntas sobre tus datos o solicita análisis.</div>
+
+      <div className="bg-black rounded-lg border border-neutral-800 p-4 mb-3 max-h-[50vh] overflow-y-auto">
+        {messages.length===0&&<div className="text-center text-neutral-600 text-sm py-8">No hay mensajes aún. Escribe algo para comenzar.</div>}
+        {messages.map((m,i)=><div key={i} className={"mb-3 flex "+(m.role==="user"?"justify-end":"justify-start")}>
+          <div className={"max-w-[80%] rounded-lg px-4 py-2 "+(m.role==="user"?"bg-yellow-400/10 border border-yellow-400/20":"bg-neutral-800 border border-neutral-700")}>
+            <div className={"text-[10px] font-bold uppercase tracking-widest mb-1 "+(m.role==="user"?"text-yellow-400":"text-teal-400")}>{m.role==="user"?"Tú":"Asistente"}</div>
+            <div className="text-sm text-white whitespace-pre-wrap">{m.content}</div>
+          </div>
+        </div>)}
+        {loading&&<div className="flex justify-start mb-3">
+          <div className="max-w-[80%] rounded-lg px-4 py-2 bg-neutral-800 border border-neutral-700">
+            <div className="text-[10px] font-bold uppercase tracking-widest mb-1 text-teal-400">Asistente</div>
+            <div className="text-sm text-neutral-400 animate-pulse">Escribiendo...</div>
+          </div>
+        </div>}
+      </div>
+
+      <div className="space-y-2">
+        <textarea value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}}} placeholder="Escribe tu pregunta aquí... (Shift+Enter para nueva línea)" className="w-full bg-black border border-neutral-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-yellow-500 min-h-[80px] resize-none" disabled={loading}/>
+        <div className="flex items-center justify-between">
+          <div className={"text-xs "+(wc>500?"text-red-400":"text-neutral-500")}>{wc}/500 palabras</div>
+          <button onClick={sendMessage} disabled={!canSend} className={"px-6 py-2 rounded-lg text-sm font-bold transition-all "+(canSend?"bg-yellow-400 text-black hover:bg-yellow-300":"bg-neutral-800 text-neutral-600 cursor-not-allowed")}>Enviar</button>
+        </div>
+        {error&&<div className="text-xs text-red-400">Error: {error}</div>}
+      </div>
+    </div>
+  </div>;
+}
+
 /* ═══ CONTROL ═══ */
 function Ctrl({cfg,setCfg}){
   const [pw,setPw]=useState("");const [ok,setOk]=useState(false);const [ni,setNi]=useState("");const [ef,setEf]=useState("closers");
@@ -507,7 +567,7 @@ function useSheetData(){
 export default function App(){
   const [tab,setTab]=useState("clientes");const [cfg,setCfg]=useState(DEF);
   const {NR,setNR,CK,setCK,SK,setSK,loading,error,lastUpdate,refresh}=useSheetData();
-  const tabs=[{id:"clientes",l:"Clientes",i:"👤"},{id:"closer",l:"Closer KPI",i:"📞"},{id:"setter",l:"Setter KPI",i:"💬"},{id:"ingesta",l:"Ingesta",i:"📝"},{id:"control",l:"Control",i:"⚙️"}];
+  const tabs=[{id:"asistente",l:"Asistente IA",i:"🤖"},{id:"clientes",l:"Clientes",i:"👤"},{id:"closer",l:"Closer KPI",i:"📞"},{id:"setter",l:"Setter KPI",i:"💬"},{id:"ingesta",l:"Ingesta",i:"📝"},{id:"control",l:"Control",i:"⚙️"}];
   return <div className="min-h-screen bg-black text-white" style={{fontFamily:"'DM Sans',system-ui,sans-serif"}}>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     <style>{`input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);cursor:pointer;}`}</style>
@@ -525,6 +585,7 @@ export default function App(){
       </div>
     </header>
     <main className="max-w-7xl mx-auto px-4 py-4">
+      {tab==="asistente"&&<AiAssistant/>}
       {tab==="clientes"&&<Nombres cfg={cfg} NR={NR}/>}
       {tab==="closer"&&<Closer cfg={cfg} CK={CK}/>}
       {tab==="setter"&&<SetterDB cfg={cfg} SK={SK}/>}
