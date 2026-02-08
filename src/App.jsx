@@ -353,7 +353,7 @@ function AiAssistant(){
       let assistantMsg;
       if(contentType.includes('application/json')){
         const data=await res.json();
-        assistantMsg=data.response||data.message||data.text||data.output||JSON.stringify(data);
+        assistantMsg=data.Respuesta||data.respuesta||data.response||data.message||data.text||data.output||JSON.stringify(data);
       }else{
         assistantMsg=await res.text();
       }
