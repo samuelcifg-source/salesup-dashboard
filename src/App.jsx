@@ -152,7 +152,7 @@ function Nombres({cfg,NR}){
 
   const td=useMemo(()=>{
     if(gb==="Todos")return f.map(r=>({n:r.N,dt:r.D,ca:r.Ca,rv:r.Rv,dl:r.Dl,sr:r.Sr,co:r.P,cl:r.Cl,st:r.St}));
-    const fm2={"Mes/Año":r=>{const d=pd(r.D);return d?d.toLocaleString("en",{month:"long"})+" "+d.getFullYear():"?"},Closers:r=>r.Cl,Setters:r=>r.St,Sources:r=>r.Sr,Deals:r=>r.Dl,Offers:r=>r.Of,Paises:r=>r.P};
+    const fm2={"Mes/Año":r=>{const d=pd(r.D);return d?d.toLocaleString("es",{month:"long"})+" "+d.getFullYear():"?"},Closers:r=>r.Cl,Setters:r=>r.St,Sources:r=>r.Sr,Deals:r=>r.Dl,Offers:r=>r.Of,Paises:r=>r.P};
     const fn=fm2[gb]||(r=>"?"),gs={};f.forEach(r=>{const k2=fn(r);(gs[k2]=gs[k2]||[]).push(r);});
     return Object.entries(gs).map(([k2,it])=>({n:k2,py:it.length,ca:sm(it,"Ca"),rv:sm(it,"Rv"),av:it.length?sm(it,"Ca")/it.length:0,pi:it.length?it.filter(r=>r.Dl==="Pago Completo"||r.Dl==="Sequra").length/it.length:0}));
   },[f,gb]);
@@ -202,28 +202,28 @@ function Closer({cfg,CK}){
   const k=useMemo(()=>{
     const ca=sm(f,"Ca"),cc=sm(f,"CC"),lc=sm(f,"LC"),of=sm(f,"O"),dp=sm(f,"Dp"),ci=sm(f,"Ci");
     const pca=sm(pf,"Ca"),pcc=sm(pf,"CC"),plc=sm(pf,"LC"),pof=sm(pf,"O"),pdp=sm(pf,"Dp"),pci=sm(pf,"Ci");
-    return{ca,cc,lc,of,dp,ci,sr:ca?lc/ca:0,cp:ca?cc/ca:0,op:lc?of/lc:0,cm:lc?(dp+ci)/lc:0,oc:of?ci/of:0,ccr:lc?ci/lc:0,ac:ca?ci/ca:0,pca,pcc,plc,pof,pdp,pci,psr:pca?plc/pca:0,pop:plc?pof/plc:0,pcm:plc?(pdp+pci)/plc:0,poc:pof?pci/pof:0,pccr:plc?pci/plc:0};
+    return{ca,cc,lc,of,dp,ci,sr:ca?lc/ca:0,cp:ca?cc/ca:0,op:lc?of/lc:0,cm:ci?dp/ci:0,oc:of?ci/of:0,ccr:lc?ci/lc:0,ac:ca?ci/ca:0,pca,pcc,plc,pof,pdp,pci,psr:pca?plc/pca:0,pop:plc?pof/plc:0,pcm:pci?pdp/pci:0,poc:pof?pci/pof:0,pccr:plc?pci/plc:0};
   },[f,pf]);
 
   const td=useMemo(()=>{
     const fm2={Closers:r=>r.Cl,"Tipo Llamada":r=>r.CT,Dates:r=>r.D};const fn=fm2[gb]||(r=>r.D),gs={};
     f.forEach(r=>{const k2=fn(r);if(!gs[k2])gs[k2]={ca:0,cc:0,lc:0,of:0,dp:0,ci:0};const g=gs[k2];g.ca+=r.Ca||0;g.cc+=r.CC||0;g.lc+=r.LC||0;g.of+=r.O||0;g.dp+=r.Dp||0;g.ci+=r.Ci||0;});
-    return Object.entries(gs).map(([k2,v])=>({nm:k2,...v,sr:v.ca?v.lc/v.ca:0,cp:v.ca?v.cc/v.ca:0,op:v.lc?v.of/v.lc:0,cm:v.lc?(v.dp+v.ci)/v.lc:0,oc:v.of?v.ci/v.of:0,ccr:v.lc?v.ci/v.lc:0,ac:v.ca?v.ci/v.ca:0})).sort((a,b)=>a.nm>b.nm?1:-1);
+    return Object.entries(gs).map(([k2,v])=>({nm:k2,...v,sr:v.ca?v.lc/v.ca:0,cp:v.ca?v.cc/v.ca:0,op:v.lc?v.of/v.lc:0,cm:v.ci?v.dp/v.ci:0,oc:v.of?v.ci/v.of:0,ccr:v.lc?v.ci/v.lc:0,ac:v.ca?v.ci/v.ca:0})).sort((a,b)=>a.nm>b.nm?1:-1);
   },[f,gb]);
 
-  const pie=useMemo(()=>{const g={};f.forEach(r=>{const k2=gb==="Closers"?r.Cl:r.D;g[k2]=(g[k2]||0)+(r.Ca||0);});return Object.entries(g).map(([n,v])=>({name:n,value:v}));},[f,gb]);
+  const pie=useMemo(()=>{const fm2={Closers:r=>r.Cl,"Tipo Llamada":r=>r.CT,Dates:r=>r.D};const fn=fm2[gb]||(r=>r.D);const g={};f.forEach(r=>{const k2=fn(r);g[k2]=(g[k2]||0)+(r.Ca||0);});return Object.entries(g).map(([n,v])=>({name:n,value:v}));},[f,gb]);
   const bar=useMemo(()=>td.map(r=>({name:r.nm,calls:r.ca,live:r.lc})),[td]);
   const cols=[{k:"nm",l:gb},{k:"ca",l:"Llamadas"},{k:"cp",l:"Cancel %",r:v=>fp(v)},{k:"cc",l:"Canceladas"},{k:"sr",l:"Show %",r:v=>fp(v)},{k:"lc",l:"Hechas"},{k:"op",l:"Oferta %",r:v=>fp(v)},{k:"of",l:"Ofertas"},{k:"dp",l:"Dep."},{k:"ci",l:"Cierres"},{k:"cm",l:"Compromiso %",r:v=>fp(v)},{k:"oc",l:"Of/Ci %",r:v=>fp(v)},{k:"ccr",l:"Lla/Ci %",r:v=>fp(v)},{k:"ac",l:"Tot/Ci %",r:v=>fp(v)}];
   const cp=compOn;
 
   return <div className="space-y-3">
-    <div className="grid grid-cols-5 gap-2.5">
-      <KCard t="Llamadas Agenda" v={fm(k.ca)} p={cp?fm(k.pca):null} icon="📞"/><KCard t="Oferta (%)" v={fp(k.op)} p={cp?fp(k.pop):null}/>
+    <div className="grid grid-cols-6 gap-2.5">
+      <KCard t="Llamadas Agenda" v={fm(k.ca)} p={cp?fm(k.pca):null} icon="📞" vr="green"/><KCard t="Llamadas Hechas" v={fm(k.lc)} p={cp?fm(k.plc):null} icon="🔴" vr="green"/>
       <KCard t="Ofertas" v={fm(k.of)} p={cp?fm(k.pof):null} vr="green"/><KCard t="Depósitos" v={fm(k.dp)} p={cp?fm(k.pdp):null} icon="💰" vr="green"/>
       <KCard t="Cierres" v={fm(k.ci)} p={cp?fm(k.pci):null} vr="green"/>
     </div>
-    <div className="grid grid-cols-5 gap-2.5">
-      <KCard t="Show Rate (%)" v={fp(k.sr)} p={cp?fp(k.psr):null}/><KCard t="Llamadas Hechas" v={fm(k.lc)} p={cp?fm(k.plc):null} icon="🔴" vr="green"/>
+    <div className="grid grid-cols-6 gap-2.5">
+      <KCard t="Show Rate (%)" v={fp(k.sr)} p={cp?fp(k.psr):null}/><KCard t="Oferta (%)" v={fp(k.op)} p={cp?fp(k.pop):null}/>
       <KCard t="Compromiso (%)" v={fp(k.cm)} p={cp?fp(k.pcm):null}/><KCard t="Oferta/Cierre (%)" v={fp(k.oc)} p={cp?fp(k.poc):null}/>
       <KCard t="Llamada/Cierre (%)" v={fp(k.ccr)} p={cp?fp(k.pccr):null}/>
     </div>
@@ -276,8 +276,8 @@ function SetterDB({cfg,SK}){
   const td=useMemo(()=>{
     const fm2={Setters:r=>r.St,"Tipo Plan":r=>r.DT,"Mes/Año":r=>{const d=pd(r.D);return d?d.toLocaleString("es",{month:"long"})+" "+d.getFullYear():"?"},Dates:r=>r.D};
     const fn=fm2[gb]||(r=>r.St),gs={};
-    f.forEach(r=>{const k2=fn(r);if(!gs[k2])gs[k2]={c:0,l:0,a:0,n:0,nActive:0};const g=gs[k2];g.c+=r.NC||0;g.l+=r.LE||0;g.a+=r.LA||0;g.n++;if((r.NC||0)>0)g.nActive++;});
-    return Object.entries(gs).map(([k2,v])=>({nm:k2,...v,dmp:v.n?v.nActive/v.n:0,ofp:v.c?v.l/v.c:0,cap:v.c?v.a/v.c:0,ccp:v.l?v.a/v.l:0}));
+    f.forEach(r=>{const k2=fn(r);if(!gs[k2])gs[k2]={c:0,l:0,a:0,n:0,nd:0};const g=gs[k2];g.c+=r.NC||0;g.l+=r.LE||0;g.a+=r.LA||0;g.n++;if((r.NC||0)>0)g.nd++;});
+    return Object.entries(gs).map(([k2,v])=>({nm:k2,...v,dmp:v.n?v.nd/v.n:0,ofp:v.c?v.l/v.c:0,cap:v.c?v.a/v.c:0,ccp:v.l?v.a/v.l:0}));
   },[f,gb]);
 
   const pie=useMemo(()=>{const g={};f.forEach(r=>{const k2=gb==="Mes/Año"?(()=>{const d=pd(r.D);return d?d.toLocaleString("es",{month:"long"})+" "+d.getFullYear():"?";})():gb==="Setters"?r.St:r.D;g[k2]=(g[k2]||0)+(r.NC||0);});return Object.entries(g).map(([n,v])=>({name:n,value:v}));},[f,gb]);
@@ -319,8 +319,8 @@ function SetterDB({cfg,SK}){
     <FilterBar biz={cfg.biz} gb={gb} setGb={setGb} GS={GS} per={per} setPer={setPer} customDates={cd2} setCustomDates={setCd2} compOn={compOn} setCompOn={setCompOn}/>
     <div className="border border-neutral-800 rounded-xl overflow-hidden">
       <table className="w-full text-sm"><tbody>
-        <tr className="bg-neutral-900">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-bold text-white whitespace-nowrap text-xs">{i===0?"Total":c.k==="c"?fm(totC):c.k==="l"?fm(totL):c.k==="a"?fm(totA):c.k==="ofp"?fp(k.ofp):c.k==="cap"?fp(k.cap):c.k==="ccp"?fp(k.ccp):""}</td>)}</tr>
-        <tr className="bg-neutral-800">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-semibold text-neutral-300 whitespace-nowrap text-xs">{i===0?"Media":c.k==="c"?fm(avgC,2):c.k==="l"?fm(avgL,2):c.k==="a"?fm(avgA,2):c.k==="ofp"?fp(avgOfp):c.k==="cap"?fp(avgCap):c.k==="ccp"?fp(avgCcp):""}</td>)}</tr>
+        <tr className="bg-neutral-900">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-bold text-white whitespace-nowrap text-xs">{i===0?"Total":c.k==="c"?fm(totC):c.k==="l"?fm(totL):c.k==="a"?fm(totA):c.k==="dmp"?fp(k.dmp):c.k==="ofp"?fp(k.ofp):c.k==="cap"?fp(k.cap):c.k==="ccp"?fp(k.ccp):""}</td>)}</tr>
+        <tr className="bg-neutral-800">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-semibold text-neutral-300 whitespace-nowrap text-xs">{i===0?"Media":c.k==="c"?fm(avgC,2):c.k==="l"?fm(avgL,2):c.k==="a"?fm(avgA,2):c.k==="dmp"?fp(avgDmp):c.k==="ofp"?fp(avgOfp):c.k==="cap"?fp(avgCap):c.k==="ccp"?fp(avgCcp):""}</td>)}</tr>
       </tbody></table>
       <table className="w-full text-sm"><thead><tr className="bg-neutral-900">
         {cols.map((c,i)=><th key={i} className="px-3 py-2 text-left text-[10px] font-bold text-yellow-400 uppercase tracking-wider border-b border-neutral-800 whitespace-nowrap">{c.l}</th>)}
@@ -501,18 +501,19 @@ function parseDate(d){
 function parseNombres(rows){
   if(!rows||rows.length<2)return[];
   const h=rows[0];
-  const i=(k)=>h.indexOf(k);
-  return rows.slice(1).filter(r=>r&&r.length>2&&(r[i('Nombre')]||r[2])).map(r=>({
-    N:r[i('Nombre')]||'',
-    P:r[i('Pais')]||'',
-    D:parseDate(r[i('Date')])||'',
-    Cl:r[i('Closer')]||'',
-    Sr:r[i('Source')]||'',
-    St:r[i('Setter')]||'',
-    Dl:r[i('Deal')]||'',
-    Of:r[i('Offer')]||'',
-    Rv:parseFloat(r[i('Revenue')])||0,
-    Ca:parseFloat(r[i('Cash')])||0,
+  const ix=(name)=>{const n=name.toLowerCase();return h.findIndex(c=>c.replace(/\n/g,' ').replace(/\s+/g,' ').trim().toLowerCase()===n);};
+  const iN=ix('nombre'),iP=ix('pais'),iD=ix('date'),iCl=ix('closer'),iSr=ix('source'),iSt=ix('setter'),iDl=ix('deal'),iOf=ix('offer'),iRv=ix('revenue'),iCa=ix('cash');
+  return rows.slice(1).filter(r=>r&&r.length>2&&(iN>=0?r[iN]:r[2])).map(r=>({
+    N:iN>=0?r[iN]||'':'',
+    P:iP>=0?r[iP]||'':'',
+    D:parseDate(iD>=0?r[iD]:''),
+    Cl:iCl>=0?r[iCl]||'':'',
+    Sr:iSr>=0?r[iSr]||'':'',
+    St:iSt>=0?r[iSt]||'':'',
+    Dl:iDl>=0?r[iDl]||'':'',
+    Of:iOf>=0?r[iOf]||'':'',
+    Rv:parseFloat(iRv>=0?r[iRv]:0)||0,
+    Ca:parseFloat(iCa>=0?r[iCa]:0)||0,
   }));
 }
 
@@ -538,13 +539,16 @@ function parseCloser(rows){
 function parseSetter(rows){
   if(!rows||rows.length<2)return[];
   const h=rows[0];
+  const ix=(name)=>{const n=name.toLowerCase();return h.findIndex(c=>c.replace(/\n/g,' ').replace(/\s+/g,' ').trim().toLowerCase()===n);};
+  const fuzzy=(keywords)=>h.findIndex(c=>{const cl=c.replace(/\n/g,' ').replace(/\s+/g,' ').trim().toLowerCase();return keywords.every(k=>cl.includes(k.toLowerCase()));});
+  const iSt=ix('setters'),iD=ix('dates'),iDT=fuzzy(['dm','type']),iNC=fuzzy(['nuevas','convo']),iLE=fuzzy(['links','enviados']),iLA=fuzzy(['llamadas','agendadas']);
   return rows.slice(1).filter(r=>r&&r.length>2&&r[0]).map(r=>({
-    St:r[h.indexOf('Setters')]||'',
-    D:parseDate(r[h.indexOf('Dates')])||'',
-    DT:r[h.indexOf('DM Type')]||r[h.indexOf('DM type')]||'',
-    NC:parseInt(r[h.indexOf('Nuevas Convos')]||r[h.indexOf('Nuevas \nConvo')])||0,
-    LE:parseInt(r[h.indexOf('Links Enviados')]||r[h.indexOf('Links \nEnviados')])||0,
-    LA:parseInt(r[h.indexOf('Llamadas Agendadas')]||r[h.indexOf('Llamadas \nAgendadas')])||0,
+    St:iSt>=0?r[iSt]||'':'',
+    D:parseDate(iD>=0?r[iD]:''),
+    DT:iDT>=0?r[iDT]||'':'',
+    NC:parseInt(iNC>=0?r[iNC]:0)||0,
+    LE:parseInt(iLE>=0?r[iLE]:0)||0,
+    LA:parseInt(iLA>=0?r[iLA]:0)||0,
   }));
 }
 
