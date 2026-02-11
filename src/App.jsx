@@ -15,6 +15,7 @@ const fm=(n,d=0)=>(n==null||isNaN(n))?"0":Number(n).toLocaleString("es-ES",{mini
 const fp=n=>(n==null||isNaN(n))?"0%":(Number(n)*100).toFixed(2).replace(/\.?0+$/,"")+"%";
 const fe=n=>fm(n,2)+"€";
 const sm=(a,k)=>a.reduce((s,r)=>s+(Number(r[k])||0),0);
+const pn=v=>{if(typeof v==='number')return v;if(!v)return 0;const s=String(v).replace(/[^0-9.,\-]/g,'');if(s.includes('.')&&s.includes(','))return parseFloat(s.replace(/\./g,'').replace(',','.'))||0;if(s.includes(','))return parseFloat(s.replace(',','.'))||0;return parseFloat(s)||0;};
 const CC2=["#FFD700","#3B82F6","#22C55E","#EF4444","#8B5CF6","#EC4899","#0D9488","#F97316"];
 const tts={backgroundColor:"#111",border:"1px solid #FFD700",borderRadius:"6px",color:"#FFD700",fontSize:"12px"};
 const fmtD=d=>d.toISOString().slice(0,10);
@@ -264,63 +265,72 @@ function SetterDB({cfg,SK}){
   const [compOn,setCompOn]=useState(false);
   const GS=["Setters","Tipo Plan","Mes/Año","Fechas"];
   const {f,pf}=useDF(SK,"D",per,cd2,compOn);
+  const isL=r=>(r.DT||'').toLowerCase().includes('llamada');
 
   const k=useMemo(()=>{
-    const c=sm(f,"NC"),l=sm(f,"LE"),a=sm(f,"LA");
-    const pc=sm(pf,"NC"),pl=sm(pf,"LE"),pa=sm(pf,"LA");
-    const ofp=c?l/c:0,cap=c?a/c:0,ccp=l?a/l:0;
-    const pofp=pc?pl/pc:0,pcap=pc?pa/pc:0;
-    return {c,l,a,pc,pl,pa,ofp,cap,ccp,pofp,pcap};
+    const cv=f.filter(isL).reduce((s,r)=>s+(r.NC||0),0);
+    const ms=f.filter(r=>!isL(r)).reduce((s,r)=>s+(r.NC||0),0);
+    const l=sm(f,"LE"),a=sm(f,"LA");
+    const ofp=cv?l/cv:0,cap=cv?a/cv:0,ccp=l?a/l:0;
+    const pcv=pf.filter(isL).reduce((s,r)=>s+(r.NC||0),0);
+    const pms=pf.filter(r=>!isL(r)).reduce((s,r)=>s+(r.NC||0),0);
+    const pl=sm(pf,"LE"),pa=sm(pf,"LA");
+    const pofp=pcv?pl/pcv:0,pcap=pcv?pa/pcv:0,pccp=pl?pa/pl:0;
+    return{cv,ms,l,a,ofp,cap,ccp,pcv,pms,pl,pa,pofp,pcap,pccp};
   },[f,pf]);
 
   const td=useMemo(()=>{
-    const fm2={Setters:r=>r.St,"Tipo Plan":r=>r.DT,"Mes/Año":r=>{const d=pd(r.D);return d?d.toLocaleString("es",{month:"long"})+" "+d.getFullYear():"?"},Dates:r=>r.D};
+    const fm2={Setters:r=>r.St,"Tipo Plan":r=>r.DT,"Mes/Año":r=>{const d=pd(r.D);return d?d.toLocaleString("es",{month:"long"})+" "+d.getFullYear():"?"},Fechas:r=>r.D};
     const fn=fm2[gb]||(r=>r.St),gs={};
-    f.forEach(r=>{const k2=fn(r);if(!gs[k2])gs[k2]={c:0,l:0,a:0,n:0,nd:0};const g=gs[k2];g.c+=r.NC||0;g.l+=r.LE||0;g.a+=r.LA||0;g.n++;if((r.NC||0)>0)g.nd++;});
-    return Object.entries(gs).map(([k2,v])=>({nm:k2,...v,dmp:v.n?v.nd/v.n:0,ofp:v.c?v.l/v.c:0,cap:v.c?v.a/v.c:0,ccp:v.l?v.a/v.l:0}));
+    f.forEach(r=>{const k2=fn(r);if(!gs[k2])gs[k2]={cv:0,ms:0,l:0,a:0};const g=gs[k2];if(isL(r))g.cv+=r.NC||0;else g.ms+=r.NC||0;g.l+=r.LE||0;g.a+=r.LA||0;});
+    return Object.entries(gs).map(([k2,v])=>({nm:k2,...v,ofp:v.cv?v.l/v.cv:0,cap:v.cv?v.a/v.cv:0,ccp:v.l?v.a/v.l:0}));
   },[f,gb]);
 
-  const pie=useMemo(()=>{const g={};f.forEach(r=>{const k2=gb==="Mes/Año"?(()=>{const d=pd(r.D);return d?d.toLocaleString("es",{month:"long"})+" "+d.getFullYear():"?";})():gb==="Setters"?r.St:r.D;g[k2]=(g[k2]||0)+(r.NC||0);});return Object.entries(g).map(([n,v])=>({name:n,value:v}));},[f,gb]);
-  const bar=useMemo(()=>td.map(r=>({name:r.nm,convos:r.c})),[td]);
+  const pie=useMemo(()=>{const fm2={Setters:r=>r.St,"Tipo Plan":r=>r.DT,"Mes/Año":r=>{const d=pd(r.D);return d?d.toLocaleString("es",{month:"long"})+" "+d.getFullYear():"?"},Fechas:r=>r.D};const fn=fm2[gb]||(r=>r.St);const g={};f.forEach(r=>{const k2=fn(r);g[k2]=(g[k2]||0)+(r.NC||0);});return Object.entries(g).map(([n,v])=>({name:n,value:v}));},[f,gb]);
+  const bar=useMemo(()=>td.map(r=>({name:r.nm,convos:r.cv,mensajes:r.ms})),[td]);
 
-  const totC=sm(td,"c"),totL=sm(td,"l"),totA=sm(td,"a"),totN=td.length;
-  const avgC=totN?totC/totN:0,avgL=totN?totL/totN:0,avgA=totN?totA/totN:0;
+  const totCv=sm(td,"cv"),totMs=sm(td,"ms"),totL=sm(td,"l"),totA=sm(td,"a"),totN=td.length;
+  const avgCv=totN?totCv/totN:0,avgMs=totN?totMs/totN:0,avgL=totN?totL/totN:0,avgA=totN?totA/totN:0;
   const avgOfp=totN?td.reduce((s,r)=>s+r.ofp,0)/totN:0;
   const avgCap=totN?td.reduce((s,r)=>s+r.cap,0)/totN:0,avgCcp=totN?td.reduce((s,r)=>s+r.ccp,0)/totN:0;
 
-  const cols=[{k:"nm",l:gb},{k:"c",l:"Convos #TODO"},{k:"ofp",l:"Oferta %",r:v=>fp(v)},{k:"l",l:"Ofertas"},{k:"cap",l:"Call %",r:v=>fp(v)},{k:"a",l:"Llamadas"},{k:"ccp",l:"Convo/Call %",r:v=>fp(v)}];
+  const cols=[{k:"nm",l:gb},{k:"cv",l:"Convos"},{k:"ms",l:"Mensajes"},{k:"ofp",l:"Oferta %",r:v=>fp(v)},{k:"l",l:"Ofertas"},{k:"cap",l:"Llamada %",r:v=>fp(v)},{k:"a",l:"Llamadas"},{k:"ccp",l:"Of./Lla. %",r:v=>fp(v)}];
   const cp=compOn;
 
   return <div className="space-y-3">
-    <div className="grid grid-cols-5 gap-2.5">
-      <KCard t="Nuevas Convos" v={fm(k.c)} p={cp?fm(k.pc):null} icon="💬" vr="green"/>
-      <KCard t="Oferta (%)" v={fp(k.ofp)} p={cp?fp(k.pofp):null}/><KCard t="Ofertas" v={fm(k.l)} p={cp?fm(k.pl):null} icon="📩" vr="green"/>
-      <KCard t="Llamada (%)" v={fp(k.cap)} p={cp?fp(k.pcap):null}/><KCard t="Llamadas" v={fm(k.a)} p={cp?fm(k.pa):null} icon="📞" vr="green"/>
+    <div className="grid grid-cols-4 gap-2.5">
+      <KCard t="Nuevas Convos" v={fm(k.cv)} p={cp?fm(k.pcv):null} icon="💬" vr="green"/>
+      <KCard t="Mensajes (FU)" v={fm(k.ms)} p={cp?fm(k.pms):null} icon="📨" vr="green"/>
+      <KCard t="Ofertas (Links)" v={fm(k.l)} p={cp?fm(k.pl):null} icon="📩" vr="green"/>
+      <KCard t="Llamadas" v={fm(k.a)} p={cp?fm(k.pa):null} icon="📞" vr="green"/>
     </div>
-    <div className="grid grid-cols-5 gap-2.5">
-      <KCard t="Convo/Llamada (%)" v={fp(k.ccp)}/>
+    <div className="grid grid-cols-3 gap-2.5">
+      <KCard t="Oferta (%)" v={fp(k.ofp)} p={cp?fp(k.pofp):null}/>
+      <KCard t="Llamada (%)" v={fp(k.cap)} p={cp?fp(k.pcap):null}/>
+      <KCard t="Oferta/Llamada (%)" v={fp(k.ccp)} p={cp?fp(k.pccp):null}/>
     </div>
     <div className="grid grid-cols-5 gap-2.5">
       <div className="col-span-2 bg-neutral-900 rounded-xl border border-neutral-800 p-3">
-        <div className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-1">Distribución convos</div>
+        <div className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-1">Distribución DMs</div>
         <div className="flex flex-wrap gap-2 mb-2">{pie.map((d,i)=><div key={i} className="flex items-center gap-1 text-[10px] text-neutral-500"><div className="w-2 h-2 rounded-full" style={{background:CC2[i%CC2.length]}}/>{d.name}</div>)}</div>
         <ResponsiveContainer width="100%" height={180}><PieChart><Pie data={pie} cx="50%" cy="50%" innerRadius={40} outerRadius={72} paddingAngle={2} dataKey="value" label={({percent,cx,cy,midAngle,innerRadius,outerRadius})=>{const r=outerRadius+16;const x=cx+r*Math.cos(-midAngle*Math.PI/180);const y=cy+r*Math.sin(-midAngle*Math.PI/180);return <text x={x} y={y} fill="#999" textAnchor="middle" fontSize={10} dominantBaseline="central">{(percent*100).toFixed(1)+"%"}</text>;}} labelLine={false}>
           {pie.map((_,i)=><Cell key={i} fill={CC2[i%CC2.length]}/>)}</Pie><Tooltip contentStyle={tts} itemStyle={{color:"#ccc"}} labelStyle={{color:"#FFD700"}}/></PieChart></ResponsiveContainer>
       </div>
       <div className="col-span-3 bg-neutral-900 rounded-xl border border-neutral-800 p-3">
-        <div className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-1">Convos por grupo</div>
+        <div className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-1">Convos vs Mensajes por grupo</div>
         <ResponsiveContainer width="100%" height={200}><BarChart data={bar} margin={{top:5,right:10,bottom:50,left:5}}>
           <CartesianGrid strokeDasharray="3 3" stroke="#222"/><XAxis dataKey="name" tick={{fill:"#555",fontSize:8}} angle={-45} textAnchor="end" interval={0}/>
           <YAxis tick={{fill:"#444",fontSize:9}}/><Tooltip contentStyle={tts} itemStyle={{color:"#ccc"}} labelStyle={{color:"#FFD700"}}/>
           <Bar dataKey="convos" name="Convos" fill="#FFD700" radius={[3,3,0,0]}/>
+          <Bar dataKey="mensajes" name="Mensajes" fill="rgba(255,215,0,0.3)" radius={[3,3,0,0]}/>
         </BarChart></ResponsiveContainer>
       </div>
     </div>
     <FilterBar biz={cfg.biz} gb={gb} setGb={setGb} GS={GS} per={per} setPer={setPer} customDates={cd2} setCustomDates={setCd2} compOn={compOn} setCompOn={setCompOn}/>
     <div className="border border-neutral-800 rounded-xl overflow-hidden">
       <table className="w-full text-sm"><tbody>
-        <tr className="bg-neutral-900">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-bold text-white whitespace-nowrap text-xs">{i===0?"Total":c.k==="c"?fm(totC):c.k==="l"?fm(totL):c.k==="a"?fm(totA):c.k==="dmp"?fp(k.dmp):c.k==="ofp"?fp(k.ofp):c.k==="cap"?fp(k.cap):c.k==="ccp"?fp(k.ccp):""}</td>)}</tr>
-        <tr className="bg-neutral-800">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-semibold text-neutral-300 whitespace-nowrap text-xs">{i===0?"Media":c.k==="c"?fm(avgC,2):c.k==="l"?fm(avgL,2):c.k==="a"?fm(avgA,2):c.k==="dmp"?fp(avgDmp):c.k==="ofp"?fp(avgOfp):c.k==="cap"?fp(avgCap):c.k==="ccp"?fp(avgCcp):""}</td>)}</tr>
+        <tr className="bg-neutral-900">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-bold text-white whitespace-nowrap text-xs">{i===0?"Total":c.k==="cv"?fm(totCv):c.k==="ms"?fm(totMs):c.k==="l"?fm(totL):c.k==="a"?fm(totA):c.k==="ofp"?fp(k.ofp):c.k==="cap"?fp(k.cap):c.k==="ccp"?fp(k.ccp):""}</td>)}</tr>
+        <tr className="bg-neutral-800">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-semibold text-neutral-300 whitespace-nowrap text-xs">{i===0?"Media":c.k==="cv"?fm(avgCv,1):c.k==="ms"?fm(avgMs,1):c.k==="l"?fm(avgL,1):c.k==="a"?fm(avgA,1):c.k==="ofp"?fp(avgOfp):c.k==="cap"?fp(avgCap):c.k==="ccp"?fp(avgCcp):""}</td>)}</tr>
       </tbody></table>
       <table className="w-full text-sm"><thead><tr className="bg-neutral-900">
         {cols.map((c,i)=><th key={i} className="px-3 py-2 text-left text-[10px] font-bold text-yellow-400 uppercase tracking-wider border-b border-neutral-800 whitespace-nowrap">{c.l}</th>)}
@@ -461,10 +471,10 @@ function Ingesta({NR,setNR,CK,setCK,SK,setSK,cfg}){
   return <div className="space-y-3"><div className="bg-neutral-900 rounded-xl border border-neutral-800 p-4">
     <div className="text-lg font-bold text-yellow-400 mb-1">Ingesta de Datos</div><div className="text-xs text-neutral-500 mb-3">Edita datos directamente. Con Google Sheets se sincronizarán.</div>
     <div className="flex gap-1 mb-3">{tabs2.map(t=><button key={t.id} onClick={()=>{setTab(t.id);cancelE();}} className={"px-3 py-1.5 rounded-md text-xs font-bold "+(tab===t.id?"bg-yellow-400 text-black":"bg-neutral-800 text-neutral-500")}>{t.l}</button>)}</div>
-    {tab==="clientes"&&<div><button onClick={()=>{setNw(true);setER(-1);setED({N:"",P:"Spain",D:fmtD(new Date()),Cl:cfg.closers[0]||"",Sr:cfg.sources[0]||"",St:cfg.setters[0]||"",Dl:cfg.deals[0]||"",Of:cfg.ofertas[0]||"",Rv:0,Ca:0});}} className="bg-yellow-400 text-black px-3 py-1.5 rounded-md text-xs font-bold mb-2">+ Nuevo</button>
-      <div className="overflow-x-auto"><table className="w-full text-xs"><thead className="sticky top-0"><tr className="bg-neutral-800"><th className="px-2 py-2 text-yellow-400 text-left">#</th><th className="px-2 py-2 text-yellow-400 text-left">Nombre</th><th className="px-2 py-2 text-yellow-400 text-left">País</th><th className="px-2 py-2 text-yellow-400 text-left">Fecha</th><th className="px-2 py-2 text-yellow-400 text-left">Closer</th><th className="px-2 py-2 text-yellow-400 text-left">Source</th><th className="px-2 py-2 text-yellow-400 text-left">Setter</th><th className="px-2 py-2 text-yellow-400 text-left">Deal</th><th className="px-2 py-2 text-yellow-400 text-left">Oferta</th><th className="px-2 py-2 text-yellow-400 text-left">Revenue</th><th className="px-2 py-2 text-yellow-400 text-left">Cash</th><th className="px-2 py-2 text-yellow-400 text-left">Act.</th></tr></thead><tbody>
-        {nw&&<tr className="bg-teal-950/30">{[null,"N","P","D","Cl","Sr","St","Dl","Of","Rv","Ca"].map((f,i)=><td key={i} className="px-2 py-1">{i===0?"✨":inp(f)}</td>)}<td className="px-2 py-1"><button onClick={()=>saveN(-1)} className="text-emerald-400 text-xs font-bold mr-1">💾</button><button onClick={cancelE} className="text-red-400 text-xs font-bold">✕</button></td></tr>}
-        {NR.map((r,i)=><tr key={i} className={i%2===0?"bg-neutral-950":"bg-black"}>{eR===i?<>{[null,"N","P","D","Cl","Sr","St","Dl","Of","Rv","Ca"].map((f,j)=><td key={j} className="px-2 py-1">{j===0?(i+1):inp(f)}</td>)}<td className="px-2 py-1"><button onClick={()=>saveN(i)} className="text-emerald-400 text-xs font-bold mr-1">💾</button><button onClick={cancelE} className="text-red-400 text-xs font-bold">✕</button></td></>:<><td className="px-2 py-1 text-neutral-500">{i+1}</td><td className="px-2 py-1 text-white">{r.N}</td><td className="px-2 py-1 text-neutral-300">{r.P}</td><td className="px-2 py-1 text-neutral-300">{r.D}</td><td className="px-2 py-1 text-neutral-300">{r.Cl}</td><td className="px-2 py-1 text-neutral-300">{r.Sr}</td><td className="px-2 py-1 text-neutral-300">{r.St}</td><td className="px-2 py-1 text-neutral-300">{r.Dl}</td><td className="px-2 py-1 text-neutral-300">{r.Of}</td><td className="px-2 py-1 text-yellow-400">{fe(r.Rv)}</td><td className="px-2 py-1 text-emerald-400">{fe(r.Ca)}</td><td className="px-2 py-1"><button onClick={()=>startE(r,i)} className="text-yellow-400 text-xs mr-1">✏️</button><button onClick={()=>setNR(p=>p.filter((_,j)=>j!==i))} className="text-red-400 text-xs">🗑️</button></td></>}</tr>)}
+    {tab==="clientes"&&<div><button onClick={()=>{setNw(true);setER(-1);setED({Em:"",N:"",P:"Spain",D:fmtD(new Date()),Cl:cfg.closers[0]||"",Sr:cfg.sources[0]||"",St:cfg.setters[0]||"",Dl:cfg.deals[0]||"",Of:cfg.ofertas[0]||"",Rv:0,Ca:0,TP:"",Ju:"",TX:"",CoT:"",IG:""});}} className="bg-yellow-400 text-black px-3 py-1.5 rounded-md text-xs font-bold mb-2">+ Nuevo</button>
+      <div className="overflow-x-auto"><table className="w-full text-xs"><thead className="sticky top-0"><tr className="bg-neutral-800"><th className="px-2 py-2 text-yellow-400 text-left">#</th><th className="px-2 py-2 text-yellow-400 text-left">Email</th><th className="px-2 py-2 text-yellow-400 text-left">Nombre</th><th className="px-2 py-2 text-yellow-400 text-left">País</th><th className="px-2 py-2 text-yellow-400 text-left">Fecha</th><th className="px-2 py-2 text-yellow-400 text-left">Closer</th><th className="px-2 py-2 text-yellow-400 text-left">Source</th><th className="px-2 py-2 text-yellow-400 text-left">Setter</th><th className="px-2 py-2 text-yellow-400 text-left">Deal</th><th className="px-2 py-2 text-yellow-400 text-left">Oferta</th><th className="px-2 py-2 text-yellow-400 text-left">Revenue</th><th className="px-2 py-2 text-yellow-400 text-left">Cash</th><th className="px-2 py-2 text-yellow-400 text-left">Tipo Pago</th><th className="px-2 py-2 text-yellow-400 text-left">Justificante</th><th className="px-2 py-2 text-yellow-400 text-left">TXID</th><th className="px-2 py-2 text-yellow-400 text-left">Cod.Trans.</th><th className="px-2 py-2 text-yellow-400 text-left">Cuenta IG</th><th className="px-2 py-2 text-yellow-400 text-left">Act.</th></tr></thead><tbody>
+        {nw&&<tr className="bg-teal-950/30">{[null,"Em","N","P","D","Cl","Sr","St","Dl","Of","Rv","Ca","TP","Ju","TX","CoT","IG"].map((f,i)=><td key={i} className="px-2 py-1">{i===0?"✨":inp(f)}</td>)}<td className="px-2 py-1"><button onClick={()=>saveN(-1)} className="text-emerald-400 text-xs font-bold mr-1">💾</button><button onClick={cancelE} className="text-red-400 text-xs font-bold">✕</button></td></tr>}
+        {NR.map((r,i)=><tr key={i} className={i%2===0?"bg-neutral-950":"bg-black"}>{eR===i?<>{[null,"Em","N","P","D","Cl","Sr","St","Dl","Of","Rv","Ca","TP","Ju","TX","CoT","IG"].map((f,j)=><td key={j} className="px-2 py-1">{j===0?(i+1):inp(f)}</td>)}<td className="px-2 py-1"><button onClick={()=>saveN(i)} className="text-emerald-400 text-xs font-bold mr-1">💾</button><button onClick={cancelE} className="text-red-400 text-xs font-bold">✕</button></td></>:<><td className="px-2 py-1 text-neutral-500">{i+1}</td><td className="px-2 py-1 text-neutral-300">{r.Em}</td><td className="px-2 py-1 text-white">{r.N}</td><td className="px-2 py-1 text-neutral-300">{r.P}</td><td className="px-2 py-1 text-neutral-300">{r.D}</td><td className="px-2 py-1 text-neutral-300">{r.Cl}</td><td className="px-2 py-1 text-neutral-300">{r.Sr}</td><td className="px-2 py-1 text-neutral-300">{r.St}</td><td className="px-2 py-1 text-neutral-300">{r.Dl}</td><td className="px-2 py-1 text-neutral-300">{r.Of}</td><td className="px-2 py-1 text-yellow-400">{fe(r.Rv)}</td><td className="px-2 py-1 text-emerald-400">{fe(r.Ca)}</td><td className="px-2 py-1 text-neutral-300">{r.TP}</td><td className="px-2 py-1 text-neutral-300">{r.Ju}</td><td className="px-2 py-1 text-neutral-300">{r.TX}</td><td className="px-2 py-1 text-neutral-300">{r.CoT}</td><td className="px-2 py-1 text-neutral-300">{r.IG}</td><td className="px-2 py-1"><button onClick={()=>startE(r,i)} className="text-yellow-400 text-xs mr-1">✏️</button><button onClick={()=>setNR(p=>p.filter((_,j)=>j!==i))} className="text-red-400 text-xs">🗑️</button></td></>}</tr>)}
       </tbody></table></div></div>}
     {tab==="closer"&&<div><button onClick={()=>{setNw(true);setER(-1);setED({Cl:cfg.closers[0]||"",D:fmtD(new Date()),CT:cfg.callTypes[0]||"",Ca:0,CC:0,LC:0,O:0,Dp:0,Ci:0});}} className="bg-yellow-400 text-black px-3 py-1.5 rounded-md text-xs font-bold mb-2">+ Nuevo</button>
       <div className="overflow-x-auto"><table className="w-full text-xs"><thead className="sticky top-0"><tr className="bg-neutral-800"><th className="px-2 py-2 text-yellow-400 text-left">#</th><th className="px-2 py-2 text-yellow-400 text-left">Closer</th><th className="px-2 py-2 text-yellow-400 text-left">Fecha</th><th className="px-2 py-2 text-yellow-400 text-left">Call Type</th><th className="px-2 py-2 text-yellow-400 text-left">Calls</th><th className="px-2 py-2 text-yellow-400 text-left">Cancel</th><th className="px-2 py-2 text-yellow-400 text-left">Live</th><th className="px-2 py-2 text-yellow-400 text-left">Ofertas</th><th className="px-2 py-2 text-yellow-400 text-left">Dep.</th><th className="px-2 py-2 text-yellow-400 text-left">Cierres</th><th className="px-2 py-2 text-yellow-400 text-left">Act.</th></tr></thead><tbody>
@@ -502,8 +512,9 @@ function parseNombres(rows){
   if(!rows||rows.length<2)return[];
   const h=rows[0];
   const ix=(name)=>{const n=name.toLowerCase();return h.findIndex(c=>c.replace(/\n/g,' ').replace(/\s+/g,' ').trim().toLowerCase()===n);};
-  const iN=ix('nombre'),iP=ix('pais'),iD=ix('date'),iCl=ix('closer'),iSr=ix('source'),iSt=ix('setter'),iDl=ix('deal'),iOf=ix('offer'),iRv=ix('revenue'),iCa=ix('cash');
+  const iEm=ix('email'),iN=ix('nombre'),iP=ix('paises'),iD=ix('dates'),iCl=ix('closers'),iSr=ix('sources'),iSt=ix('setters'),iDl=ix('deals'),iOf=ix('offers'),iRv=ix('revenue'),iCa=ix('cash'),iTP=ix('tipo de pago'),iJu=ix('justificante'),iTX=ix('txid'),iCoT=ix('codigo transaccion'),iIG=ix('cuenta ig');
   return rows.slice(1).filter(r=>r&&r.length>2&&(iN>=0?r[iN]:r[2])).map(r=>({
+    Em:iEm>=0?r[iEm]||'':'',
     N:iN>=0?r[iN]||'':'',
     P:iP>=0?r[iP]||'':'',
     D:parseDate(iD>=0?r[iD]:''),
@@ -512,8 +523,13 @@ function parseNombres(rows){
     St:iSt>=0?r[iSt]||'':'',
     Dl:iDl>=0?r[iDl]||'':'',
     Of:iOf>=0?r[iOf]||'':'',
-    Rv:parseFloat(iRv>=0?r[iRv]:0)||0,
-    Ca:parseFloat(iCa>=0?r[iCa]:0)||0,
+    Rv:pn(iRv>=0?r[iRv]:0),
+    Ca:pn(iCa>=0?r[iCa]:0),
+    TP:iTP>=0?r[iTP]||'':'',
+    Ju:iJu>=0?r[iJu]||'':'',
+    TX:iTX>=0?r[iTX]||'':'',
+    CoT:iCoT>=0?r[iCoT]||'':'',
+    IG:iIG>=0?r[iIG]||'':'',
   }));
 }
 
