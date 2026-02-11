@@ -272,22 +272,22 @@ function SetterDB({cfg,SK}){
     const cv=fL.reduce((s,r)=>s+(r.NC||0),0);
     const ms=fM.reduce((s,r)=>s+(r.NC||0),0);
     const lL=sm(fL,"LE"),lM=sm(fM,"LE"),aL=sm(fL,"LA"),aM=sm(fM,"LA");
-    const l=lL+lM,a=aL+aM;
-    const ofp=cv?l/cv:0,cap=cv?a/cv:0,ccp=l?a/l:0;
+    const ofpL=cv?lL/cv:0,capL=cv?aL/cv:0,ccpL=lL?aL/lL:0;
+    const ofpM=ms?lM/ms:0,capM=ms?aM/ms:0,ccpM=lM?aM/lM:0;
     const pfL=pf.filter(isL),pfM=pf.filter(r=>!isL(r));
     const pcv=pfL.reduce((s,r)=>s+(r.NC||0),0);
     const pms=pfM.reduce((s,r)=>s+(r.NC||0),0);
     const plL=sm(pfL,"LE"),plM=sm(pfM,"LE"),paL=sm(pfL,"LA"),paM=sm(pfM,"LA");
-    const pl=plL+plM,pa=paL+paM;
-    const pofp=pcv?pl/pcv:0,pcap=pcv?pa/pcv:0,pccp=pl?pa/pl:0;
-    return{cv,ms,lL,lM,aL,aM,l,a,ofp,cap,ccp,pcv,pms,plL,plM,paL,paM,pl,pa,pofp,pcap,pccp};
+    const pofpL=pcv?plL/pcv:0,pcapL=pcv?paL/pcv:0,pccpL=plL?paL/plL:0;
+    const pofpM=pms?plM/pms:0,pcapM=pms?paM/pms:0,pccpM=plM?paM/plM:0;
+    return{cv,ms,lL,lM,aL,aM,ofpL,capL,ccpL,ofpM,capM,ccpM,pcv,pms,plL,plM,paL,paM,pofpL,pcapL,pccpL,pofpM,pcapM,pccpM};
   },[f,pf]);
 
   const td=useMemo(()=>{
     const fm2={Setters:r=>r.St,"Tipo Plan":r=>r.DT,"Mes/Año":r=>{const d=pd(r.D);return d?d.toLocaleString("es",{month:"long"})+" "+d.getFullYear():"?"},Fechas:r=>r.D};
     const fn=fm2[gb]||(r=>r.St),gs={};
     f.forEach(r=>{const k2=fn(r);if(!gs[k2])gs[k2]={cv:0,ms:0,lL:0,lM:0,aL:0,aM:0};const g=gs[k2];const ll=isL(r);if(ll){g.cv+=r.NC||0;g.lL+=r.LE||0;g.aL+=r.LA||0;}else{g.ms+=r.NC||0;g.lM+=r.LE||0;g.aM+=r.LA||0;}});
-    return Object.entries(gs).map(([k2,v])=>{const l=v.lL+v.lM,a=v.aL+v.aM;return{nm:k2,...v,l,a,ofp:v.cv?l/v.cv:0,cap:v.cv?a/v.cv:0,ccp:l?a/l:0};});
+    return Object.entries(gs).map(([k2,v])=>({nm:k2,...v,ofpL:v.cv?v.lL/v.cv:0,capL:v.cv?v.aL/v.cv:0,ccpL:v.lL?v.aL/v.lL:0,ofpM:v.ms?v.lM/v.ms:0,capM:v.ms?v.aM/v.ms:0,ccpM:v.lM?v.aM/v.lM:0}));
   },[f,gb]);
 
   const pie=useMemo(()=>{const fm2={Setters:r=>r.St,"Tipo Plan":r=>r.DT,"Mes/Año":r=>{const d=pd(r.D);return d?d.toLocaleString("es",{month:"long"})+" "+d.getFullYear():"?"},Fechas:r=>r.D};const fn=fm2[gb]||(r=>r.St);const g={};f.forEach(r=>{const k2=fn(r);g[k2]=(g[k2]||0)+(r.NC||0);});return Object.entries(g).map(([n,v])=>({name:n,value:v}));},[f,gb]);
@@ -295,10 +295,10 @@ function SetterDB({cfg,SK}){
 
   const totCv=sm(td,"cv"),totMs=sm(td,"ms"),totlL=sm(td,"lL"),totlM=sm(td,"lM"),totaL=sm(td,"aL"),totaM=sm(td,"aM"),totN=td.length;
   const avgCv=totN?totCv/totN:0,avgMs=totN?totMs/totN:0,avglL=totN?totlL/totN:0,avglM=totN?totlM/totN:0,avgaL=totN?totaL/totN:0,avgaM=totN?totaM/totN:0;
-  const avgOfp=totN?td.reduce((s,r)=>s+r.ofp,0)/totN:0;
-  const avgCap=totN?td.reduce((s,r)=>s+r.cap,0)/totN:0,avgCcp=totN?td.reduce((s,r)=>s+r.ccp,0)/totN:0;
+  const avgOfpL=totN?td.reduce((s,r)=>s+r.ofpL,0)/totN:0,avgCapL=totN?td.reduce((s,r)=>s+r.capL,0)/totN:0,avgCcpL=totN?td.reduce((s,r)=>s+r.ccpL,0)/totN:0;
+  const avgOfpM=totN?td.reduce((s,r)=>s+r.ofpM,0)/totN:0,avgCapM=totN?td.reduce((s,r)=>s+r.capM,0)/totN:0,avgCcpM=totN?td.reduce((s,r)=>s+r.ccpM,0)/totN:0;
 
-  const cols=[{k:"nm",l:gb},{k:"cv",l:"Convos"},{k:"lL",l:"Of.(Ll)"},{k:"aL",l:"Lla.(Ll)"},{k:"ms",l:"Mensajes"},{k:"lM",l:"Of.(Msg)"},{k:"aM",l:"Lla.(Msg)"},{k:"ofp",l:"Oferta %",r:v=>fp(v)},{k:"cap",l:"Llamada %",r:v=>fp(v)},{k:"ccp",l:"Of./Lla. %",r:v=>fp(v)}];
+  const cols=[{k:"nm",l:gb},{k:"cv",l:"Convos"},{k:"lL",l:"Of.(Ll)"},{k:"ofpL",l:"Of.% Ll",r:v=>fp(v)},{k:"aL",l:"Lla.(Ll)"},{k:"capL",l:"Lla.% Ll",r:v=>fp(v)},{k:"ccpL",l:"Of/Lla% Ll",r:v=>fp(v)},{k:"ms",l:"Mensajes"},{k:"lM",l:"Of.(Msg)"},{k:"ofpM",l:"Of.% Msg",r:v=>fp(v)},{k:"aM",l:"Lla.(Msg)"},{k:"capM",l:"Lla.% Msg",r:v=>fp(v)},{k:"ccpM",l:"Of/Lla% Msg",r:v=>fp(v)}];
   const cp=compOn;
 
   return <div className="space-y-3">
@@ -308,6 +308,11 @@ function SetterDB({cfg,SK}){
       <KCard t="Ofertas (Ll)" v={fm(k.lL)} p={cp?fm(k.plL):null} icon="📩" vr="green"/>
       <KCard t="Lla. Agenda (Ll)" v={fm(k.aL)} p={cp?fm(k.paL):null} icon="📞" vr="green"/>
     </div>
+    <div className="grid grid-cols-3 gap-2.5">
+      <KCard t="Oferta % (Ll)" v={fp(k.ofpL)} p={cp?fp(k.pofpL):null}/>
+      <KCard t="Llamada % (Ll)" v={fp(k.capL)} p={cp?fp(k.pcapL):null}/>
+      <KCard t="Of/Lla % (Ll)" v={fp(k.ccpL)} p={cp?fp(k.pccpL):null}/>
+    </div>
     <div className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">Mensajes</div>
     <div className="grid grid-cols-3 gap-2.5">
       <KCard t="Mensajes (FU)" v={fm(k.ms)} p={cp?fm(k.pms):null} icon="📨" vr="green"/>
@@ -315,9 +320,9 @@ function SetterDB({cfg,SK}){
       <KCard t="Lla. Agenda (Msg)" v={fm(k.aM)} p={cp?fm(k.paM):null} icon="📞" vr="green"/>
     </div>
     <div className="grid grid-cols-3 gap-2.5">
-      <KCard t="Oferta (%)" v={fp(k.ofp)} p={cp?fp(k.pofp):null}/>
-      <KCard t="Llamada (%)" v={fp(k.cap)} p={cp?fp(k.pcap):null}/>
-      <KCard t="Oferta/Llamada (%)" v={fp(k.ccp)} p={cp?fp(k.pccp):null}/>
+      <KCard t="Oferta % (Msg)" v={fp(k.ofpM)} p={cp?fp(k.pofpM):null}/>
+      <KCard t="Llamada % (Msg)" v={fp(k.capM)} p={cp?fp(k.pcapM):null}/>
+      <KCard t="Of/Lla % (Msg)" v={fp(k.ccpM)} p={cp?fp(k.pccpM):null}/>
     </div>
     <div className="grid grid-cols-5 gap-2.5">
       <div className="col-span-2 bg-neutral-900 rounded-xl border border-neutral-800 p-3">
@@ -339,8 +344,8 @@ function SetterDB({cfg,SK}){
     <FilterBar biz={cfg.biz} gb={gb} setGb={setGb} GS={GS} per={per} setPer={setPer} customDates={cd2} setCustomDates={setCd2} compOn={compOn} setCompOn={setCompOn}/>
     <div className="border border-neutral-800 rounded-xl overflow-hidden">
       <table className="w-full text-sm"><tbody>
-        <tr className="bg-neutral-900">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-bold text-white whitespace-nowrap text-xs">{i===0?"Total":c.k==="cv"?fm(totCv):c.k==="ms"?fm(totMs):c.k==="lL"?fm(totlL):c.k==="lM"?fm(totlM):c.k==="aL"?fm(totaL):c.k==="aM"?fm(totaM):c.k==="ofp"?fp(k.ofp):c.k==="cap"?fp(k.cap):c.k==="ccp"?fp(k.ccp):""}</td>)}</tr>
-        <tr className="bg-neutral-800">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-semibold text-neutral-300 whitespace-nowrap text-xs">{i===0?"Media":c.k==="cv"?fm(avgCv,1):c.k==="ms"?fm(avgMs,1):c.k==="lL"?fm(avglL,1):c.k==="lM"?fm(avglM,1):c.k==="aL"?fm(avgaL,1):c.k==="aM"?fm(avgaM,1):c.k==="ofp"?fp(avgOfp):c.k==="cap"?fp(avgCap):c.k==="ccp"?fp(avgCcp):""}</td>)}</tr>
+        <tr className="bg-neutral-900">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-bold text-white whitespace-nowrap text-xs">{i===0?"Total":c.k==="cv"?fm(totCv):c.k==="ms"?fm(totMs):c.k==="lL"?fm(totlL):c.k==="lM"?fm(totlM):c.k==="aL"?fm(totaL):c.k==="aM"?fm(totaM):c.k==="ofpL"?fp(k.ofpL):c.k==="capL"?fp(k.capL):c.k==="ccpL"?fp(k.ccpL):c.k==="ofpM"?fp(k.ofpM):c.k==="capM"?fp(k.capM):c.k==="ccpM"?fp(k.ccpM):""}</td>)}</tr>
+        <tr className="bg-neutral-800">{cols.map((c,i)=><td key={i} className="px-3 py-1.5 font-semibold text-neutral-300 whitespace-nowrap text-xs">{i===0?"Media":c.k==="cv"?fm(avgCv,1):c.k==="ms"?fm(avgMs,1):c.k==="lL"?fm(avglL,1):c.k==="lM"?fm(avglM,1):c.k==="aL"?fm(avgaL,1):c.k==="aM"?fm(avgaM,1):c.k==="ofpL"?fp(avgOfpL):c.k==="capL"?fp(avgCapL):c.k==="ccpL"?fp(avgCcpL):c.k==="ofpM"?fp(avgOfpM):c.k==="capM"?fp(avgCapM):c.k==="ccpM"?fp(avgCcpM):""}</td>)}</tr>
       </tbody></table>
       <table className="w-full text-sm"><thead><tr className="bg-neutral-900">
         {cols.map((c,i)=><th key={i} className="px-3 py-2 text-left text-[10px] font-bold text-yellow-400 uppercase tracking-wider border-b border-neutral-800 whitespace-nowrap">{c.l}</th>)}
