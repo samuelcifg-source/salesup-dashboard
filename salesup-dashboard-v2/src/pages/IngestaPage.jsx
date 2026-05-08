@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useClients } from '../hooks/useClients';
 import { useCloserKpi } from '../hooks/useCloserKpi';
 import { useSetterKpi } from '../hooks/useSetterKpi';
@@ -21,10 +21,19 @@ const SUB_TABS = [
   { id: 'gastos', label: 'Gastos' },
 ];
 
+// Default range: últimos 30 días
+const today = () => new Date().toISOString().split('T')[0];
+const daysAgo = (n) => {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
+};
+
 export default function IngestaPage() {
   const [activeSubTab, setActiveSubTab] = useState('clientes');
   const [editData, setEditData] = useState(null);
   const [message, setMessage] = useState(null);
+  const [expenseRange, setExpenseRange] = useState({ from: daysAgo(30), to: today() });
 
   const { config } = useConfig();
   const { data: clients, insert: insertClient, update: updateClient, remove: removeClient } = useClients();
@@ -74,7 +83,8 @@ export default function IngestaPage() {
   const clientColumns = [
     { key: 'name', label: 'Nombre' },
     { key: 'country', label: 'País' },
-    { key: 'start_date', label: 'Fecha' },
+    { key: 'start_date', label: 'Inicio' },
+    { key: 'end_date', label: 'Fin' },
     { key: 'closer', label: 'Closer' },
     { key: 'setter', label: 'Setter' },
     { key: 'source', label: 'Fuente' },
@@ -121,10 +131,24 @@ export default function IngestaPage() {
   const expenseColumns = [
     { key: 'description', label: 'Descripción' },
     { key: 'category', label: 'Categoría' },
+    { key: 'subcategory', label: 'Sub-tipo', render: (v) => v || '—' },
     { key: 'amount', label: 'Monto', render: (v) => formatEuro(v) },
     { key: 'date', label: 'Fecha' },
     { key: 'recurring', label: 'Recurrente', render: (v) => v ? 'Sí' : 'No' },
   ];
+
+  const filteredExpenses = useMemo(() => {
+    if (!expenses) return [];
+    return expenses.filter((e) => {
+      if (!e.date) return false;
+      return e.date >= expenseRange.from && e.date <= expenseRange.to;
+    });
+  }, [expenses, expenseRange]);
+
+  const expenseTotal = useMemo(
+    () => filteredExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0),
+    [filteredExpenses]
+  );
 
   return (
     <div className="space-y-4">
@@ -262,12 +286,39 @@ export default function IngestaPage() {
       )}
 
       {activeSubTab === 'gastos' && (
-        <DataTable
-          columns={expenseColumns}
-          data={expenses}
-          onEdit={handleEdit}
-          onDelete={(row) => handleDelete(removeExpense, row)}
-        />
+        <>
+          <div className="flex flex-wrap items-center gap-3 bg-neutral-900/50 border border-neutral-800 rounded-xl p-3">
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] text-yellow-400 font-bold uppercase tracking-widest">Desde</label>
+              <input
+                type="date"
+                value={expenseRange.from}
+                onChange={(e) => setExpenseRange((r) => ({ ...r, from: e.target.value }))}
+                className="bg-black text-white border border-neutral-700 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-yellow-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] text-yellow-400 font-bold uppercase tracking-widest">Hasta</label>
+              <input
+                type="date"
+                value={expenseRange.to}
+                onChange={(e) => setExpenseRange((r) => ({ ...r, to: e.target.value }))}
+                className="bg-black text-white border border-neutral-700 rounded-md px-2 py-1 text-sm focus:outline-none focus:border-yellow-500"
+              />
+            </div>
+            <div className="ml-auto text-sm">
+              <span className="text-neutral-400">Total rango:</span>{' '}
+              <span className="font-bold text-yellow-400">{formatEuro(expenseTotal)}</span>
+              <span className="text-neutral-500 text-xs ml-2">({filteredExpenses.length} reg.)</span>
+            </div>
+          </div>
+          <DataTable
+            columns={expenseColumns}
+            data={filteredExpenses}
+            onEdit={handleEdit}
+            onDelete={(row) => handleDelete(removeExpense, row)}
+          />
+        </>
       )}
     </div>
   );

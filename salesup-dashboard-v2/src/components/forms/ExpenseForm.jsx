@@ -2,7 +2,17 @@ import { useState, useEffect } from "react";
 
 const today = () => new Date().toISOString().split("T")[0];
 
-const CATEGORIES = ["herramientas", "ads", "personal", "otros"];
+const CATEGORIES = [
+  "herramientas",
+  "ads",
+  "personal",
+  "portadas",
+  "reels",
+  "imagenes",
+  "otros",
+];
+
+const HERRAMIENTAS_PRESETS = ["claude", "chatgpt", "n8n", "otro"];
 
 const defaultData = {
   description: "",
@@ -10,6 +20,8 @@ const defaultData = {
   amount: "",
   percentage: "",
   category: "",
+  subcategory: "",
+  subcategory_custom: "",
   date: today(),
   recurring: false,
 };
@@ -19,12 +31,17 @@ export default function ExpenseForm({ onSubmit, initialData, config }) {
 
   useEffect(() => {
     if (initialData) {
+      const cat = initialData.category ?? "";
+      const sub = initialData.subcategory ?? "";
+      const isPreset = cat === "herramientas" && HERRAMIENTAS_PRESETS.includes(sub) && sub !== "otro";
       setForm({
         description: initialData.description ?? "",
         is_percentage: initialData.is_percentage ?? false,
         amount: initialData.amount ?? "",
         percentage: initialData.percentage ?? "",
-        category: initialData.category ?? "",
+        category: cat,
+        subcategory: cat === "herramientas" ? (isPreset ? sub : (sub ? "otro" : "")) : "",
+        subcategory_custom: cat === "herramientas" && !isPreset ? sub : "",
         date: initialData.date ?? today(),
         recurring: initialData.recurring ?? false,
       });
@@ -33,14 +50,26 @@ export default function ExpenseForm({ onSubmit, initialData, config }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setForm((prev) => {
+      const next = { ...prev, [name]: type === "checkbox" ? checked : value };
+      // Reset subcategory si la categoría deja de ser herramientas
+      if (name === "category" && value !== "herramientas") {
+        next.subcategory = "";
+        next.subcategory_custom = "";
+      }
+      return next;
+    });
   };
 
   const handleReset = () => {
     setForm({ ...defaultData });
+  };
+
+  const resolveSubcategory = () => {
+    if (form.category !== "herramientas") return null;
+    if (!form.subcategory) return null;
+    if (form.subcategory === "otro") return form.subcategory_custom.trim() || null;
+    return form.subcategory;
   };
 
   const handleSubmit = (e) => {
@@ -51,6 +80,7 @@ export default function ExpenseForm({ onSubmit, initialData, config }) {
       amount: form.is_percentage ? null : Number(form.amount),
       percentage: form.is_percentage ? Number(form.percentage) : null,
       category: form.category,
+      subcategory: resolveSubcategory(),
       date: form.date,
       recurring: form.recurring,
     });
@@ -95,6 +125,41 @@ export default function ExpenseForm({ onSubmit, initialData, config }) {
             ))}
           </select>
         </div>
+
+        {/* Subcategory — solo si categoría = herramientas */}
+        {form.category === "herramientas" && (
+          <div>
+            <label className={labelClass}>Herramienta</label>
+            <select
+              name="subcategory"
+              value={form.subcategory}
+              onChange={handleChange}
+              className={inputClass}
+            >
+              <option value="">-- Seleccionar --</option>
+              {HERRAMIENTAS_PRESETS.map((s) => (
+                <option key={s} value={s}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Subcategory custom — solo si herramientas + otro */}
+        {form.category === "herramientas" && form.subcategory === "otro" && (
+          <div>
+            <label className={labelClass}>Especificar</label>
+            <input
+              type="text"
+              name="subcategory_custom"
+              value={form.subcategory_custom}
+              onChange={handleChange}
+              className={inputClass}
+              placeholder="Nombre de la herramienta"
+            />
+          </div>
+        )}
 
         {/* Is Percentage */}
         <div className="flex items-end pb-1">

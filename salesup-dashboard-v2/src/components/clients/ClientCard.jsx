@@ -330,13 +330,38 @@ export default function ClientCard({ client, onUpdatePaymentType, forceOpen }) {
   const schedulePending = scheduleTotal - schedulePaid;
   const planExceedsRevenue = hasSchedule && scheduleTotal > revenue;
 
+  // ── Status indicators ──
+  const overdueCount = schedule.filter(inst => getInstallmentStatus(inst) === 'overdue').length;
+  const hasOverdue = overdueCount > 0;
+  const totalCommPending = ROLES.reduce((sum, role) => sum + (commAgg[role]?.pending || 0), 0);
+  const hasCommissions = ROLES.some(role => (roleComm[role] || 0) > 0);
+
   return (
-    <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl overflow-hidden">
+    <div className={`bg-neutral-900/50 border border-neutral-800 rounded-xl overflow-hidden ${
+      hasOverdue ? 'border-l-[3px] border-l-red-500/70' : (isAutoFin && hasSchedule && schedulePending > 0) ? 'border-l-[3px] border-l-yellow-500/40' : totalCommPending > 0 ? 'border-l-[3px] border-l-teal-500/50' : ''
+    }`}>
       {/* ── Header ── */}
       <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-neutral-800/30 transition-colors">
-        <div className="shrink-0 text-base font-extrabold text-white w-[200px] text-left truncate flex items-center gap-2">
-          <span className="truncate">{client.name}</span>
-          {inactive && <span className="text-[10px] text-red-500 font-bold uppercase shrink-0">INACTIVO</span>}
+        <div className="shrink-0 text-left w-[220px]">
+          <div className="text-base font-extrabold text-white truncate flex items-center gap-2">
+            <span className="truncate">{client.name}</span>
+            {inactive && <span className="text-[10px] text-red-500 font-bold uppercase shrink-0">INACTIVO</span>}
+          </div>
+          {/* Status badges — solo Auto-financiado con plan muestra deuda */}
+          <div className="flex items-center gap-1.5 mt-1">
+            {isAutoFin && hasSchedule && schedulePending <= 0 && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">PAGADO</span>
+            )}
+            {hasOverdue && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse">VENCIDO {overdueCount}</span>
+            )}
+            {isAutoFin && hasSchedule && schedulePending > 0 && !hasOverdue && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-yellow-500/15 text-yellow-500 border border-yellow-500/30">DEBE {formatEuro(schedulePending)}</span>
+            )}
+            {totalCommPending > 0 && (
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-teal-500/15 text-teal-400 border border-teal-500/30">EQUIPO {formatEuro(totalCommPending)}</span>
+            )}
+          </div>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between text-[10px] text-neutral-500 mb-1">
@@ -374,7 +399,7 @@ export default function ClientCard({ client, onUpdatePaymentType, forceOpen }) {
         </div>
         <div className="shrink-0 flex items-center gap-2 w-[180px] justify-end">
           {planExceedsRevenue && <span className="text-yellow-500 text-sm" title={`Plan (${formatEuro(scheduleTotal)}) supera el total (${formatEuro(revenue)})`}>&#9888;</span>}
-          <span className="text-sm font-bold text-yellow-400">{formatEuro(cash)}</span>
+          <span className={`text-sm font-bold ${isAutoFin && hasSchedule && schedulePending <= 0 ? 'text-emerald-400' : hasOverdue ? 'text-red-400' : 'text-yellow-400'}`}>{formatEuro(cash)}</span>
           <span className="text-xs text-neutral-600">/ {formatEuro(revenue)}</span>
         </div>
         <svg className={`w-5 h-5 text-neutral-500 transition-transform shrink-0 ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -456,14 +481,32 @@ export default function ClientCard({ client, onUpdatePaymentType, forceOpen }) {
                         }`}>
                           <div className="flex items-center gap-2.5">
                             <span className="text-[10px] font-bold text-neutral-600 w-5">#{inst.number}</span>
-                            <input type="number" value={inst.amount || ''} onChange={e => updateScheduleItem(idx, 'amount', e.target.value)} disabled={isPaid}
-                              className="w-20 bg-black/50 text-white border border-neutral-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-yellow-500 disabled:opacity-50" />
-                            <span className="text-[10px] text-neutral-600">&euro;</span>
-                            <input type="date" value={inst.due_date || ''} onChange={e => updateScheduleItem(idx, 'due_date', e.target.value)} disabled={isPaid}
-                              className="bg-black/50 text-white border border-neutral-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-yellow-500 disabled:opacity-50" />
+                            {isPaid ? (
+                              <span className="w-20 text-emerald-300 text-xs px-2 py-1 bg-emerald-950/30 rounded border border-emerald-800/40 text-center">
+                                {formatEuro(inst.paid_amount || inst.amount || 0)}
+                              </span>
+                            ) : (
+                              <>
+                                <input type="number" value={inst.amount || ''} onChange={e => updateScheduleItem(idx, 'amount', e.target.value)}
+                                  className="w-20 bg-black/50 text-white border border-neutral-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-yellow-500" />
+                                <span className="text-[10px] text-neutral-600">&euro;</span>
+                              </>
+                            )}
+                            {isPaid ? (
+                              <span className="text-emerald-300 text-xs px-2 py-1 bg-emerald-950/30 rounded border border-emerald-800/40">
+                                {fmtDate(inst.due_date)}
+                              </span>
+                            ) : (
+                              <input type="date" value={inst.due_date || ''} onChange={e => updateScheduleItem(idx, 'due_date', e.target.value)}
+                                className="bg-black/50 text-white border border-neutral-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-yellow-500" />
+                            )}
 
                             {/* Status */}
-                            {isPaid && <span className="text-[10px] font-bold text-emerald-400">Pagado</span>}
+                            {isPaid && (
+                              <span className="text-[10px] font-bold text-emerald-400">
+                                Pagado{inst.paid_date ? ` · ${fmtDate(inst.paid_date)}` : ''}
+                              </span>
+                            )}
                             {isOverdue && (() => { const d = Math.abs(Math.round((now - new Date(inst.due_date + 'T00:00:00')) / 86400000)); return <span className="text-[10px] font-bold text-red-400 animate-pulse">Vencido {d}d</span>; })()}
                             {status === 'pending' && !isOverdue && (() => { const d = Math.round((new Date(inst.due_date + 'T00:00:00') - now) / 86400000); return <span className="text-[10px] text-neutral-500">en {d}d</span>; })()}
 

@@ -149,6 +149,7 @@ CREATE TABLE expenses (
     is_percentage BOOLEAN DEFAULT false,
     percentage NUMERIC(5,2) DEFAULT 0,
     category TEXT DEFAULT 'otros',
+    subcategory TEXT,
     date DATE DEFAULT CURRENT_DATE,
     recurring BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW(),

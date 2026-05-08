@@ -12,6 +12,12 @@ import Select from '../components/common/Select';
 import BarChartCard from '../components/charts/BarChartCard';
 import ExpandableRoleTable from '../components/pagos/ExpandableRoleTable';
 import PagosMensuales from '../components/pagos/PagosMensuales';
+import CobrosView from '../components/pagos/CobrosView';
+
+const SUB_TABS = [
+  { id: 'comisiones', label: 'Comisiones' },
+  { id: 'cobros', label: 'Sección de Cobros' },
+];
 
 const MONTHS = [
   { value: '', label: 'Todos' },
@@ -35,6 +41,7 @@ function filterPlaceholders(rows) {
 }
 
 export default function PagosEquipoPage() {
+  const [activeSubTab, setActiveSubTab] = useState('comisiones');
   const { data: clients, loading: loadingClients } = useClients();
   const { data: expenses, loading: loadingExpenses } = useExpenses();
 
@@ -260,10 +267,34 @@ export default function PagosEquipoPage() {
     { key: 'not_yet_generated', label: 'Futuro', render: v => <span className="text-neutral-500">{formatEuro(v)}</span> },
   ];
 
-  if (loadingClients || loadingExpenses) return <div className="text-neutral-500 text-center py-12">Cargando datos...</div>;
+  const loading = loadingClients || loadingExpenses;
 
   return (
     <div className="space-y-4">
+      <div className="flex gap-1 bg-neutral-900/50 border border-neutral-800 rounded-xl p-1">
+        {SUB_TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveSubTab(tab.id)}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeSubTab === tab.id
+                ? 'bg-yellow-400 text-black'
+                : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeSubTab === 'cobros' && <CobrosView />}
+
+      {activeSubTab === 'comisiones' && loading && (
+        <div className="text-neutral-500 text-center py-12">Cargando datos...</div>
+      )}
+
+      {activeSubTab === 'comisiones' && !loading && (
+        <>
       <FilterBar title="Pagos Equipo" period={period} setPeriod={setPeriod} customDates={customDates} setCustomDates={setCustomDates} periodDisabled={monthYearOn}
         extraFilters={
           <>
@@ -331,6 +362,8 @@ export default function PagosEquipoPage() {
             ))}
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

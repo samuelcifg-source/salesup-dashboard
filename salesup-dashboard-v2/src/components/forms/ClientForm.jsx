@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { addMonths } from "../../utils/dates";
 
 const today = () => new Date().toISOString().split("T")[0];
 
@@ -6,6 +7,7 @@ const defaultData = {
   nombre: "",
   pais: "España",
   fecha_inicio: today(),
+  fecha_final: addMonths(today(), 6),
   setter: "",
   closer: "",
   source: "",
@@ -17,13 +19,17 @@ const defaultData = {
 
 export default function ClientForm({ onSubmit, initialData, config }) {
   const [form, setForm] = useState({ ...defaultData });
+  // Si el usuario toca manualmente fecha_final, dejamos de recalcularla al cambiar fecha_inicio
+  const endDateTouched = useRef(false);
 
   useEffect(() => {
     if (initialData) {
+      const startDate = initialData.start_date ?? today();
       setForm({
         nombre: initialData.name ?? "",
         pais: initialData.country ?? "España",
-        fecha_inicio: initialData.start_date ?? today(),
+        fecha_inicio: startDate,
+        fecha_final: initialData.end_date ?? addMonths(startDate, 6),
         setter: initialData.setter ?? "",
         closer: initialData.closer ?? "",
         source: initialData.source ?? "",
@@ -32,16 +38,29 @@ export default function ClientForm({ onSubmit, initialData, config }) {
         ticket: initialData.revenue ?? "",
         cash_collected: initialData.cash ?? "0",
       });
+      // Al editar, asumimos que el end_date guardado es intencional
+      endDateTouched.current = true;
     }
   }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [name]: value };
+      // Auto-recalcula fecha_final si el usuario aún no la ha tocado manualmente
+      if (name === "fecha_inicio" && !endDateTouched.current) {
+        next.fecha_final = addMonths(value, 6);
+      }
+      if (name === "fecha_final") {
+        endDateTouched.current = true;
+      }
+      return next;
+    });
   };
 
   const handleReset = () => {
     setForm({ ...defaultData });
+    endDateTouched.current = false;
   };
 
   const handleSubmit = (e) => {
@@ -50,6 +69,7 @@ export default function ClientForm({ onSubmit, initialData, config }) {
       name: form.nombre,
       country: form.pais,
       start_date: form.fecha_inicio,
+      end_date: form.fecha_final,
       setter: form.setter,
       closer: form.closer,
       source: form.source,
@@ -102,6 +122,19 @@ export default function ClientForm({ onSubmit, initialData, config }) {
             type="date"
             name="fecha_inicio"
             value={form.fecha_inicio}
+            onChange={handleChange}
+            required
+            className={inputClass}
+          />
+        </div>
+
+        {/* Fecha Final */}
+        <div>
+          <label className={labelClass}>Fecha Final</label>
+          <input
+            type="date"
+            name="fecha_final"
+            value={form.fecha_final}
             onChange={handleChange}
             required
             className={inputClass}

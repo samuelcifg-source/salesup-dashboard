@@ -20,6 +20,17 @@ export function formatDate(d) {
   return dt.toISOString().slice(0, 10);
 }
 
+// addMonths(date, n) - returns YYYY-MM-DD string n months after the input
+export function addMonths(d, n) {
+  if (!d) return '';
+  const dt = d instanceof Date ? new Date(d) : new Date(d + (typeof d === 'string' && d.length === 10 ? 'T00:00:00' : ''));
+  const day = dt.getDate();
+  dt.setMonth(dt.getMonth() + n);
+  // Handle month overflow (e.g. Aug 31 + 6 months ≠ Feb 31)
+  if (dt.getDate() < day) dt.setDate(0);
+  return formatDate(dt);
+}
+
 // getDateRange(periodCode) - returns [startDate, endDate] for given period
 export function getDateRange(p) {
   const n = new Date();
