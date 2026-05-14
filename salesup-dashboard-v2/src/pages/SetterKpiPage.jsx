@@ -157,7 +157,7 @@ export default function SetterKpiPage() {
       />
 
       {/* Embudo tabs */}
-      <div className="flex items-center gap-2 bg-neutral-900/30 border border-neutral-800 rounded-xl px-3 py-2">
+      <div className="flex items-center gap-2 bg-neutral-900/30 border border-neutral-800 rounded-xl px-3 py-2 flex-wrap">
         <span className="text-[10px] text-neutral-500 uppercase tracking-wider font-bold mr-2">Embudo</span>
         {embudoTabs.map(tab => {
           const isActive = embudoTab === tab;
@@ -179,22 +179,23 @@ export default function SetterKpiPage() {
             </button>
           );
         })}
+        <span className="ml-auto text-[10px] text-yellow-400/80 italic font-semibold">&#9432; Embudo Vinny empieza el 23/04</span>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        <KCard title="Total Llamadas" value={formatNumber(kpis.totalLlamadas)} previous={comparisonOn ? formatNumber(prevKpis.totalLlamadas) : undefined} />
-        <KCard title="Contestaron" value={formatNumber(kpis.contestaron)} previous={comparisonOn ? formatNumber(prevKpis.contestaron) : undefined} />
-        <KCard title="No Contestaron" value={formatNumber(kpis.noContestaron)} previous={comparisonOn ? formatNumber(prevKpis.noContestaron) : undefined} variant="red" />
-        <KCard title="No Cualifica" value={formatNumber(kpis.noCualifica)} previous={comparisonOn ? formatNumber(prevKpis.noCualifica) : undefined} variant="red" />
-        <KCard title="WhatsApp" value={formatNumber(kpis.whatsapp)} previous={comparisonOn ? formatNumber(prevKpis.whatsapp) : undefined} />
-        <KCard title="Propuestas" value={formatNumber(kpis.propuestas)} previous={comparisonOn ? formatNumber(prevKpis.propuestas) : undefined} />
-        <KCard title="Agendados" value={formatNumber(kpis.agendados)} previous={comparisonOn ? formatNumber(prevKpis.agendados) : undefined} variant="green" />
-        <KCard title="Seguimiento" value={formatNumber(kpis.seguimiento)} previous={comparisonOn ? formatNumber(prevKpis.seguimiento) : undefined} />
-        <KCard title="Tasa Respuesta %" value={formatPercent(kpis.tasaRespuesta)} previous={comparisonOn ? formatPercent(prevKpis.tasaRespuesta) : undefined} />
-        <KCard title="Tasa Cualificación %" value={formatPercent(kpis.tasaCualificacion)} previous={comparisonOn ? formatPercent(prevKpis.tasaCualificacion) : undefined} />
-        <KCard title="Propuesta %" value={formatPercent(kpis.propuestaPct)} previous={comparisonOn ? formatPercent(prevKpis.propuestaPct) : undefined} />
-        <KCard title="Agenda %" value={formatPercent(kpis.agendaPct)} previous={comparisonOn ? formatPercent(prevKpis.agendaPct) : undefined} />
-        <KCard title="Propuesta→Agenda %" value={formatPercent(kpis.propuestaAgendaPct)} previous={comparisonOn ? formatPercent(prevKpis.propuestaAgendaPct) : undefined} />
+        <KCard title="Total Llamadas" info="Suma de llamadas realizadas" value={formatNumber(kpis.totalLlamadas)} previous={comparisonOn ? formatNumber(prevKpis.totalLlamadas) : undefined} />
+        <KCard title="Contestaron" info="Llamadas atendidas por el cliente" value={formatNumber(kpis.contestaron)} previous={comparisonOn ? formatNumber(prevKpis.contestaron) : undefined} />
+        <KCard title="No Contestaron" info="Llamadas no atendidas" value={formatNumber(kpis.noContestaron)} previous={comparisonOn ? formatNumber(prevKpis.noContestaron) : undefined} variant="red" />
+        <KCard title="No Cualifica" info="Contactos que no califican" value={formatNumber(kpis.noCualifica)} previous={comparisonOn ? formatNumber(prevKpis.noCualifica) : undefined} variant="red" />
+        <KCard title="WhatsApp" info="Contactos vía WhatsApp" value={formatNumber(kpis.whatsapp)} previous={comparisonOn ? formatNumber(prevKpis.whatsapp) : undefined} />
+        <KCard title="Propuestas" info="Propuestas enviadas" value={formatNumber(kpis.propuestas)} previous={comparisonOn ? formatNumber(prevKpis.propuestas) : undefined} />
+        <KCard title="Agendados" info="Llamadas agendadas con el closer" value={formatNumber(kpis.agendados)} previous={comparisonOn ? formatNumber(prevKpis.agendados) : undefined} variant="green" />
+        <KCard title="Seguimiento" info="Seguimientos enviados" value={formatNumber(kpis.seguimiento)} previous={comparisonOn ? formatNumber(prevKpis.seguimiento) : undefined} />
+        <KCard title="Tasa Respuesta %" info="Contestaron ÷ Total Llamadas" value={formatPercent(kpis.tasaRespuesta)} previous={comparisonOn ? formatPercent(prevKpis.tasaRespuesta) : undefined} />
+        <KCard title="Tasa Cualificación %" info="(Contestaron − No Cualifica) ÷ Contestaron" value={formatPercent(kpis.tasaCualificacion)} previous={comparisonOn ? formatPercent(prevKpis.tasaCualificacion) : undefined} />
+        <KCard title="Propuesta %" info="Propuestas ÷ Contestaron" value={formatPercent(kpis.propuestaPct)} previous={comparisonOn ? formatPercent(prevKpis.propuestaPct) : undefined} />
+        <KCard title="Agenda %" info="Agendados ÷ Contestaron" value={formatPercent(kpis.agendaPct)} previous={comparisonOn ? formatPercent(prevKpis.agendaPct) : undefined} />
+        <KCard title="Propuesta→Agenda %" info="Agendados ÷ Propuestas" value={formatPercent(kpis.propuestaAgendaPct)} previous={comparisonOn ? formatPercent(prevKpis.propuestaAgendaPct) : undefined} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

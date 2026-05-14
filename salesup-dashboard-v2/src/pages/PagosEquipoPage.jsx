@@ -321,14 +321,14 @@ export default function PagosEquipoPage() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-        <KCard title="Facturado" value={formatEuro(totalRevenue)} />
-        <KCard title="Cash" value={formatEuro(totalCash)} />
-        <KCard title="A Deber" value={formatEuro(commissions.totalPending)} variant="red" />
-        <KCard title="Pagado" value={formatEuro(commissions.totalPaid)} variant="green" />
-        <KCard title="Futuro" value={formatEuro(commissions.totalNotYetGenerated)} />
-        <KCard title="Neto" value={formatEuro(netRevenue)} />
-        <KCard title="Gastos" value={formatEuro(totalExpenses)} />
-        <KCard title="Clientes" value={formatNumber(filtered.length)} />
+        <KCard title="Facturado" info="Revenue total del periodo" value={formatEuro(totalRevenue)} />
+        <KCard title="Cash" info="Cash cobrado del periodo" value={formatEuro(totalCash)} />
+        <KCard title="A Deber" info="Comisiones pendientes al equipo" value={formatEuro(commissions.totalPending)} variant="red" />
+        <KCard title="Pagado" info="Comisiones ya pagadas al equipo" value={formatEuro(commissions.totalPaid)} variant="green" />
+        <KCard title="Futuro" info="Comisiones esperadas de cuotas pendientes" value={formatEuro(commissions.totalNotYetGenerated)} />
+        <KCard title="Neto" info="Cash − comisiones − gastos" value={formatEuro(netRevenue)} />
+        <KCard title="Gastos" info="Gastos del periodo (tabla + extras por cliente)" value={formatEuro(totalExpenses)} />
+        <KCard title="Clientes" info="Clientes en el periodo seleccionado" value={formatNumber(filtered.length)} />
       </div>
 
       {/* Pagos Mensuales: Este Mes / Proximo Mes */}

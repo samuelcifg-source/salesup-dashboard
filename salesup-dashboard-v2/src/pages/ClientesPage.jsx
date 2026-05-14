@@ -131,16 +131,16 @@ export default function ClientesPage() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <KCard title="Ventas" value={formatNumber(kpis.ventas)} previous={comparisonOn ? formatNumber(prevKpis.ventas) : undefined} />
-        <KCard title="Cobrado %" value={formatPercent(kpis.cobradoPct)} previous={comparisonOn ? formatPercent(prevKpis.cobradoPct) : undefined} />
-        <KCard title="Hotmart" subtitle="8.5%" value={formatEuro(kpis.hotmart)} previous={comparisonOn ? formatEuro(prevKpis.hotmart) : undefined} variant="red" />
-        <KCard title="Ingresos Totales" subtitle="- Hotmart" value={formatEuro(kpis.ingresosTotales)} previous={comparisonOn ? formatEuro(prevKpis.ingresosTotales) : undefined} />
-        <KCard title="Reembolsos" value={formatEuro(kpis.reembolsos)} previous={comparisonOn ? formatEuro(prevKpis.reembolsos) : undefined} variant="red" />
-        <KCard title="Setter %" subtitle="con setter" value={formatPercent(kpis.setterPct)} previous={comparisonOn ? formatPercent(prevKpis.setterPct) : undefined} />
-        <KCard title="PIF %" subtitle="Pago Íntegro" value={formatPercent(kpis.pifPct)} previous={comparisonOn ? formatPercent(prevKpis.pifPct) : undefined} />
-        <KCard title="Cobro Medio" value={formatEuro(kpis.cobroMedio)} previous={comparisonOn ? formatEuro(prevKpis.cobroMedio) : undefined} />
-        <KCard title="Total Cobrado" value={formatEuro(kpis.totalCobrado)} previous={comparisonOn ? formatEuro(prevKpis.totalCobrado) : undefined} variant="green" />
-        <KCard title="Com. Reps" subtitle="todos roles" value={formatEuro(commissions.totalOwed)} previous={comparisonOn ? formatEuro(prevCommissions.totalOwed) : undefined} />
+        <KCard title="Ventas" info="Clientes con venta (sin reembolsos)" value={formatNumber(kpis.ventas)} previous={comparisonOn ? formatNumber(prevKpis.ventas) : undefined} />
+        <KCard title="Cobrado %" info="Cash ÷ Revenue total" value={formatPercent(kpis.cobradoPct)} previous={comparisonOn ? formatPercent(prevKpis.cobradoPct) : undefined} />
+        <KCard title="Hotmart" subtitle="8.5%" info="Comisión Hotmart (8.5% del revenue)" value={formatEuro(kpis.hotmart)} previous={comparisonOn ? formatEuro(prevKpis.hotmart) : undefined} variant="red" />
+        <KCard title="Ingresos Totales" subtitle="- Hotmart" info="Revenue − comisión Hotmart" value={formatEuro(kpis.ingresosTotales)} previous={comparisonOn ? formatEuro(prevKpis.ingresosTotales) : undefined} />
+        <KCard title="Reembolsos" info="Cash devuelto a clientes" value={formatEuro(kpis.reembolsos)} previous={comparisonOn ? formatEuro(prevKpis.reembolsos) : undefined} variant="red" />
+        <KCard title="Setter %" subtitle="con setter" info="Clientes con setter asignado ÷ total" value={formatPercent(kpis.setterPct)} previous={comparisonOn ? formatPercent(prevKpis.setterPct) : undefined} />
+        <KCard title="PIF %" subtitle="Pago Íntegro" info="Pago Completo o Sequra ÷ ventas" value={formatPercent(kpis.pifPct)} previous={comparisonOn ? formatPercent(prevKpis.pifPct) : undefined} />
+        <KCard title="Cobro Medio" info="Cash total ÷ número de ventas" value={formatEuro(kpis.cobroMedio)} previous={comparisonOn ? formatEuro(prevKpis.cobroMedio) : undefined} />
+        <KCard title="Total Cobrado" info="Suma del cash de todos los clientes" value={formatEuro(kpis.totalCobrado)} previous={comparisonOn ? formatEuro(prevKpis.totalCobrado) : undefined} variant="green" />
+        <KCard title="Com. Reps" subtitle="todos roles" info="Comisiones totales (pagadas + pendientes + futuras)" value={formatEuro(commissions.totalOwed)} previous={comparisonOn ? formatEuro(prevCommissions.totalOwed) : undefined} />
       </div>
 
       <BarChartCard

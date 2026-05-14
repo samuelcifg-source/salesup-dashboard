@@ -1,4 +1,4 @@
-export default function KCard({ title, subtitle, value, previous, variant }) {
+export default function KCard({ title, subtitle, value, previous, variant, info }) {
   const base = 'border rounded-xl p-3 flex flex-col justify-between min-w-[140px]';
   const cls = variant === 'red'
     ? `${base} bg-red-950/30 border-red-800/40`
@@ -35,9 +35,18 @@ export default function KCard({ title, subtitle, value, previous, variant }) {
 
   return (
     <div className={cls}>
-      <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
-        {title}
-        {subtitle && <span className="ml-1 normal-case tracking-normal text-neutral-600 font-normal">({subtitle})</span>}
+      <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest flex items-center gap-1">
+        <span>{title}</span>
+        {subtitle && <span className="normal-case tracking-normal text-neutral-600 font-normal">({subtitle})</span>}
+        {info && (
+          <span
+            title={info}
+            className="ml-auto text-neutral-600 hover:text-yellow-400 cursor-help transition-colors normal-case tracking-normal font-normal text-[11px] leading-none"
+            aria-label={info}
+          >
+            &#9432;
+          </span>
+        )}
       </div>
       <div className={`text-2xl font-extrabold tracking-tight leading-none mt-1 ${vc}`}>{value}</div>
       {delta}

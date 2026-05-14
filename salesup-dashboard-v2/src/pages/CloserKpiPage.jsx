@@ -128,17 +128,17 @@ export default function CloserKpiPage() {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        <KCard title="Llamadas Agenda" value={formatNumber(kpis.llamadasAgenda)} previous={comparisonOn ? formatNumber(prevKpis.llamadasAgenda) : undefined} />
-        <KCard title="Llamadas Hechas" value={formatNumber(kpis.llamadasHechas)} previous={comparisonOn ? formatNumber(prevKpis.llamadasHechas) : undefined} />
-        <KCard title="Ofertas" value={formatNumber(kpis.ofertas)} previous={comparisonOn ? formatNumber(prevKpis.ofertas) : undefined} />
-        <KCard title="Depósitos" value={formatNumber(kpis.depositos)} previous={comparisonOn ? formatNumber(prevKpis.depositos) : undefined} />
-        <KCard title="Cierres" value={formatNumber(kpis.cierres)} previous={comparisonOn ? formatNumber(prevKpis.cierres) : undefined} />
-        <KCard title="Canceladas" value={formatNumber(kpis.canceladas)} previous={comparisonOn ? formatNumber(prevKpis.canceladas) : undefined} variant="red" />
-        <KCard title="Show Rate %" value={formatPercent(kpis.showRate)} previous={comparisonOn ? formatPercent(prevKpis.showRate) : undefined} />
-        <KCard title="Oferta %" value={formatPercent(kpis.ofertaPct)} previous={comparisonOn ? formatPercent(prevKpis.ofertaPct) : undefined} />
-        <KCard title="Compromiso %" value={formatPercent(kpis.compromisoPct)} previous={comparisonOn ? formatPercent(prevKpis.compromisoPct) : undefined} />
-        <KCard title="Oferta/Cierre %" value={formatPercent(kpis.ofertaCierrePct)} previous={comparisonOn ? formatPercent(prevKpis.ofertaCierrePct) : undefined} />
-        <KCard title="Llamada/Cierre %" value={formatPercent(kpis.llamadaCierrePct)} previous={comparisonOn ? formatPercent(prevKpis.llamadaCierrePct) : undefined} />
+        <KCard title="Llamadas Agenda" info="Llamadas programadas" value={formatNumber(kpis.llamadasAgenda)} previous={comparisonOn ? formatNumber(prevKpis.llamadasAgenda) : undefined} />
+        <KCard title="Llamadas Hechas" info="Llamadas realizadas en directo" value={formatNumber(kpis.llamadasHechas)} previous={comparisonOn ? formatNumber(prevKpis.llamadasHechas) : undefined} />
+        <KCard title="Ofertas" info="Ofertas presentadas en llamada" value={formatNumber(kpis.ofertas)} previous={comparisonOn ? formatNumber(prevKpis.ofertas) : undefined} />
+        <KCard title="Depósitos" info="Clientes que dejaron depósito" value={formatNumber(kpis.depositos)} previous={comparisonOn ? formatNumber(prevKpis.depositos) : undefined} />
+        <KCard title="Cierres" info="Ventas cerradas" value={formatNumber(kpis.cierres)} previous={comparisonOn ? formatNumber(prevKpis.cierres) : undefined} />
+        <KCard title="Canceladas" info="Llamadas canceladas antes de realizarse" value={formatNumber(kpis.canceladas)} previous={comparisonOn ? formatNumber(prevKpis.canceladas) : undefined} variant="red" />
+        <KCard title="Show Rate %" info="Llamadas Hechas ÷ Llamadas Agendadas" value={formatPercent(kpis.showRate)} previous={comparisonOn ? formatPercent(prevKpis.showRate) : undefined} />
+        <KCard title="Oferta %" info="Ofertas ÷ Llamadas Hechas" value={formatPercent(kpis.ofertaPct)} previous={comparisonOn ? formatPercent(prevKpis.ofertaPct) : undefined} />
+        <KCard title="Compromiso %" info="Depósitos ÷ Cierres" value={formatPercent(kpis.compromisoPct)} previous={comparisonOn ? formatPercent(prevKpis.compromisoPct) : undefined} />
+        <KCard title="Oferta/Cierre %" info="Cierres ÷ Ofertas" value={formatPercent(kpis.ofertaCierrePct)} previous={comparisonOn ? formatPercent(prevKpis.ofertaCierrePct) : undefined} />
+        <KCard title="Llamada/Cierre %" info="Cierres ÷ Llamadas Hechas" value={formatPercent(kpis.llamadaCierrePct)} previous={comparisonOn ? formatPercent(prevKpis.llamadaCierrePct) : undefined} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
