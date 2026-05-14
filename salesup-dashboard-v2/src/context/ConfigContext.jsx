@@ -7,6 +7,7 @@ const DEFAULTS = {
   business_name: 'SALESUP',
   closers: ['Pablo', 'No Closer'],
   setters: ['No Setter', 'Sofi', 'Jared', 'Neus'],
+  setter_embudos: ['formulario'],
   traffickers: ['No Trafficker'],
   process_managers: ['No Process Manager'],
   offers: ['Herbolario', 'Cafetería', 'Panadería', 'Compraventa de coches', 'Ecommerce'],

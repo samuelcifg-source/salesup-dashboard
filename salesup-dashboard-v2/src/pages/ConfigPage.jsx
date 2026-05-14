@@ -4,6 +4,7 @@ import { useConfig } from '../context/ConfigContext';
 const LIST_SECTIONS = [
   { key: 'closers', label: 'Closers' },
   { key: 'setters', label: 'Setters' },
+  { key: 'setter_embudos', label: 'Embudos Setter' },
   { key: 'traffickers', label: 'Traffickers' },
   { key: 'process_managers', label: 'Process Managers' },
   { key: 'offers', label: 'Ofertas' },

@@ -3,6 +3,7 @@ import { useTeamMembers } from '../../hooks/useTeamMembers';
 import { useTeamMemberPayments } from '../../hooks/useTeamMemberPayments';
 import { uploadReceipt, getReceiptUrl, removeReceipt } from '../../utils/storage';
 import { formatEuro } from '../../utils/format';
+import { useConfig } from '../../context/ConfigContext';
 
 const today = () => new Date().toISOString().split('T')[0];
 
@@ -211,6 +212,7 @@ function PaymentList({ payments, onTogglePaid, onEdit, onDelete, onViewReceipt }
         <tr>
           <th className="text-left py-1">Fecha</th>
           <th className="text-left py-1">Concepto</th>
+          <th className="text-left py-1">Método</th>
           <th className="text-right py-1">Importe</th>
           <th className="text-center py-1">Justificante</th>
           <th className="text-center py-1">Pagado</th>
@@ -222,6 +224,7 @@ function PaymentList({ payments, onTogglePaid, onEdit, onDelete, onViewReceipt }
           <tr key={p.id} className="border-t border-neutral-800/50">
             <td className="py-1.5 text-neutral-300">{p.payment_date || '—'}</td>
             <td className="py-1.5 text-neutral-300">{p.concept || '—'}</td>
+            <td className="py-1.5 text-neutral-400">{p.payment_method || '—'}</td>
             <td className="py-1.5 text-right text-white font-bold">{formatEuro(p.amount)}</td>
             <td className="py-1.5 text-center">
               {p.receipt_url ? (
@@ -318,11 +321,13 @@ function MemberFormModal({ initial, onSave, onClose }) {
 
 // ── Modal: alta / edición de team_member_payment ──
 function PaymentFormModal({ initial, onSave, onClose }) {
+  const { config } = useConfig();
   const [form, setForm] = useState({
     amount: initial?.amount ?? '',
     payment_date: initial?.payment_date ?? today(),
     paid: initial?.paid ?? false,
     concept: initial?.concept ?? '',
+    payment_method: initial?.payment_method ?? '',
     notes: initial?.notes ?? '',
     receipt_url: initial?.receipt_url ?? null,
   });
@@ -347,6 +352,7 @@ function PaymentFormModal({ initial, onSave, onClose }) {
       payment_date: form.payment_date || null,
       paid: form.paid,
       concept: form.concept || null,
+      payment_method: form.payment_method || null,
       notes: form.notes || null,
       receipt_url: form.receipt_url,
     }, file);
@@ -363,9 +369,19 @@ function PaymentFormModal({ initial, onSave, onClose }) {
             <input type="date" name="payment_date" value={form.payment_date} onChange={onChange} className={inputCls} />
           </Field>
         </div>
-        <Field label="Concepto">
-          <input name="concept" value={form.concept} onChange={onChange} className={inputCls} placeholder="Ej. Nómina enero, comisión cliente X" />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Concepto">
+            <input name="concept" value={form.concept} onChange={onChange} className={inputCls} placeholder="Ej. Nómina enero, comisión cliente X" />
+          </Field>
+          <Field label="Método de pago">
+            <select name="payment_method" value={form.payment_method} onChange={onChange} className={inputCls}>
+              <option value="">--</option>
+              {(config?.payment_methods ?? []).map((pm) => (
+                <option key={pm} value={pm}>{pm}</option>
+              ))}
+            </select>
+          </Field>
+        </div>
         <Field label="Justificante (imagen / PDF)">
           <input type="file" accept="image/*,application/pdf" onChange={onFileChange} className="text-sm text-neutral-300" />
           {filePreview && <img src={filePreview} alt="preview" className="mt-2 max-h-32 rounded border border-neutral-700" />}

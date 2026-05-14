@@ -23,6 +23,8 @@ const defaultData = {
   subcategory: "",
   subcategory_custom: "",
   date: today(),
+  period_start: "",
+  period_end: "",
   recurring: false,
 };
 
@@ -43,6 +45,8 @@ export default function ExpenseForm({ onSubmit, initialData, config }) {
         subcategory: cat === "herramientas" ? (isPreset ? sub : (sub ? "otro" : "")) : "",
         subcategory_custom: cat === "herramientas" && !isPreset ? sub : "",
         date: initialData.date ?? today(),
+        period_start: initialData.period_start ?? "",
+        period_end: initialData.period_end ?? "",
         recurring: initialData.recurring ?? false,
       });
     }
@@ -82,9 +86,14 @@ export default function ExpenseForm({ onSubmit, initialData, config }) {
       category: form.category,
       subcategory: resolveSubcategory(),
       date: form.date,
+      period_start: form.period_start || null,
+      period_end: form.period_end || null,
       recurring: form.recurring,
     });
   };
+
+  const periodHalfFilled =
+    (form.period_start && !form.period_end) || (!form.period_start && form.period_end);
 
   const labelClass =
     "text-[10px] text-yellow-400 font-bold uppercase tracking-widest mb-1 block";
@@ -212,9 +221,9 @@ export default function ExpenseForm({ onSubmit, initialData, config }) {
           </div>
         )}
 
-        {/* Date */}
+        {/* Date — fecha de pago efectivo */}
         <div>
-          <label className={labelClass}>Date</label>
+          <label className={labelClass}>Fecha de pago</label>
           <input
             type="date"
             name="date"
@@ -223,6 +232,36 @@ export default function ExpenseForm({ onSubmit, initialData, config }) {
             className={inputClass}
           />
         </div>
+
+        {/* Period start (opcional) */}
+        <div>
+          <label className={labelClass}>Período — Inicio</label>
+          <input
+            type="date"
+            name="period_start"
+            value={form.period_start}
+            onChange={handleChange}
+            className={inputClass}
+          />
+        </div>
+
+        {/* Period end (opcional) */}
+        <div>
+          <label className={labelClass}>Período — Fin</label>
+          <input
+            type="date"
+            name="period_end"
+            value={form.period_end}
+            onChange={handleChange}
+            className={inputClass}
+          />
+        </div>
+
+        {periodHalfFilled && (
+          <div className="md:col-span-2 lg:col-span-3 text-[11px] text-yellow-500/80 -mt-2">
+            Has rellenado solo un extremo del período. Si no rellenas el otro, se guardará como nulo.
+          </div>
+        )}
 
         {/* Recurring */}
         <div className="flex items-end pb-1">

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 const today = () => new Date().toISOString().split("T")[0];
 
 const defaultData = {
+  embudo: "formulario",
   setter: "",
   fecha: today(),
   total: "0",
@@ -21,6 +22,7 @@ export default function SetterKpiForm({ onSubmit, initialData, config }) {
   useEffect(() => {
     if (initialData) {
       setForm({
+        embudo: initialData.embudo ?? "formulario",
         setter: initialData.setter_name ?? "",
         fecha: initialData.date ?? today(),
         total: initialData.total_calls ?? "0",
@@ -47,6 +49,7 @@ export default function SetterKpiForm({ onSubmit, initialData, config }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
+      embudo: form.embudo,
       setter_name: form.setter,
       date: form.fecha,
       total_calls: Number(form.total),
@@ -68,6 +71,24 @@ export default function SetterKpiForm({ onSubmit, initialData, config }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Embudo */}
+        <div>
+          <label className={labelClass}>Embudo</label>
+          <select
+            name="embudo"
+            value={form.embudo}
+            onChange={handleChange}
+            required
+            className={inputClass}
+          >
+            {(config?.setter_embudos ?? ["formulario"]).map((e) => (
+              <option key={e} value={e}>
+                {e}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Setter */}
         <div>
           <label className={labelClass}>Setter</label>

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useSetterKpi } from '../hooks/useSetterKpi';
 import { useDateFilter } from '../hooks/useDateFilter';
+import { useConfig } from '../context/ConfigContext';
 import { calcSetterKpis } from '../utils/kpi';
 import { formatNumber, formatPercent } from '../utils/format';
 import { groupData } from '../utils/groupBy';
@@ -15,9 +16,10 @@ function sumN(arr, key) { return arr.reduce((s, r) => s + (Number(r[key]) || 0),
 
 export default function SetterKpiPage() {
   const { data, loading } = useSetterKpi();
+  const { config } = useConfig();
   const {
-    filtered,
-    previousFiltered,
+    filtered: dateFiltered,
+    previousFiltered: dateFilteredPrev,
     period,
     setPeriod,
     customDates,
@@ -29,6 +31,26 @@ export default function SetterKpiPage() {
   } = useDateFilter(data, 'date', 'setters');
 
   const [grouping, setGrouping] = useState('Setters');
+  const [embudoTab, setEmbudoTab] = useState('Todos');
+
+  // Tabs: 'Todos' + embudos del config + embudos detectados en data (por si hay alguno no en config)
+  const embudoTabs = useMemo(() => {
+    const fromConfig = config?.setter_embudos ?? [];
+    const fromData = Array.from(new Set(data.map(r => r.embudo).filter(Boolean)));
+    const merged = Array.from(new Set([...fromConfig, ...fromData]));
+    return ['Todos', ...merged];
+  }, [config, data]);
+
+  // Apply embudo filter on top of date filter
+  const filtered = useMemo(() => {
+    if (embudoTab === 'Todos') return dateFiltered;
+    return dateFiltered.filter(r => (r.embudo || 'formulario') === embudoTab);
+  }, [dateFiltered, embudoTab]);
+
+  const previousFiltered = useMemo(() => {
+    if (embudoTab === 'Todos') return dateFilteredPrev;
+    return dateFilteredPrev.filter(r => (r.embudo || 'formulario') === embudoTab);
+  }, [dateFilteredPrev, embudoTab]);
 
   const kpis = useMemo(() => calcSetterKpis(filtered), [filtered]);
   const prevKpis = useMemo(() => calcSetterKpis(previousFiltered), [previousFiltered]);
@@ -133,6 +155,31 @@ export default function SetterKpiPage() {
         compareDates={compareDates}
         setCompareDates={setCompareDates}
       />
+
+      {/* Embudo tabs */}
+      <div className="flex items-center gap-2 bg-neutral-900/30 border border-neutral-800 rounded-xl px-3 py-2">
+        <span className="text-[10px] text-neutral-500 uppercase tracking-wider font-bold mr-2">Embudo</span>
+        {embudoTabs.map(tab => {
+          const isActive = embudoTab === tab;
+          const count = tab === 'Todos'
+            ? dateFiltered.length
+            : dateFiltered.filter(r => (r.embudo || 'formulario') === tab).length;
+          return (
+            <button
+              key={tab}
+              onClick={() => setEmbudoTab(tab)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                isActive
+                  ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/50'
+                  : 'text-neutral-400 border-neutral-700 hover:border-neutral-500 hover:text-neutral-200'
+              }`}
+            >
+              <span className="capitalize">{tab}</span>
+              <span className={`ml-1.5 text-[10px] ${isActive ? 'text-yellow-400/70' : 'text-neutral-600'}`}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
         <KCard title="Total Llamadas" value={formatNumber(kpis.totalLlamadas)} previous={comparisonOn ? formatNumber(prevKpis.totalLlamadas) : undefined} />

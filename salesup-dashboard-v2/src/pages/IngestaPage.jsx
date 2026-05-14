@@ -2,14 +2,12 @@ import { useState, useMemo, useCallback } from 'react';
 import { useClients } from '../hooks/useClients';
 import { useCloserKpi } from '../hooks/useCloserKpi';
 import { useSetterKpi } from '../hooks/useSetterKpi';
-import { useTeamPayments } from '../hooks/useTeamPayments';
 import { useExpenses } from '../hooks/useExpenses';
 import { useConfig } from '../context/ConfigContext';
 import { formatEuro } from '../utils/format';
 import ClientForm from '../components/forms/ClientForm';
 import CloserKpiForm from '../components/forms/CloserKpiForm';
 import SetterKpiForm from '../components/forms/SetterKpiForm';
-import TeamPaymentForm from '../components/forms/TeamPaymentForm';
 import ExpenseForm from '../components/forms/ExpenseForm';
 import DataTable from '../components/common/DataTable';
 
@@ -17,7 +15,6 @@ const SUB_TABS = [
   { id: 'clientes', label: 'Clientes' },
   { id: 'closer_kpi', label: 'Closer KPI' },
   { id: 'setter_kpi', label: 'Setter KPI' },
-  { id: 'pagos_equipo', label: 'Pagos Equipo' },
   { id: 'gastos', label: 'Gastos' },
 ];
 
@@ -39,7 +36,6 @@ export default function IngestaPage() {
   const { data: clients, insert: insertClient, update: updateClient, remove: removeClient } = useClients();
   const { data: closerKpiData, insert: insertCloserKpi, update: updateCloserKpi, remove: removeCloserKpi } = useCloserKpi();
   const { data: setterKpiData, insert: insertSetterKpi, update: updateSetterKpi, remove: removeSetterKpi } = useSetterKpi();
-  const { data: teamPayments, insert: insertTeamPayment, update: updateTeamPayment, remove: removeTeamPayment } = useTeamPayments();
   const { data: expenses, insert: insertExpense, update: updateExpense, remove: removeExpense } = useExpenses();
 
   const showMessage = useCallback((text, type = 'success') => {
@@ -107,6 +103,7 @@ export default function IngestaPage() {
   ];
 
   const setterColumns = [
+    { key: 'embudo', label: 'Embudo', render: (v) => v || 'formulario' },
     { key: 'setter_name', label: 'Setter' },
     { key: 'date', label: 'Fecha' },
     { key: 'total_calls', label: 'Total' },
@@ -119,21 +116,17 @@ export default function IngestaPage() {
     { key: 'follow_ups', label: 'Seguimiento' },
   ];
 
-  const teamPaymentColumns = [
-    { key: 'person_name', label: 'Nombre' },
-    { key: 'role', label: 'Rol' },
-    { key: 'amount', label: 'Monto', render: (v) => formatEuro(v) },
-    { key: 'date', label: 'Fecha' },
-    { key: 'concept', label: 'Concepto' },
-    { key: 'payment_method', label: 'Método' },
-  ];
-
   const expenseColumns = [
     { key: 'description', label: 'Descripción' },
     { key: 'category', label: 'Categoría' },
     { key: 'subcategory', label: 'Sub-tipo', render: (v) => v || '—' },
     { key: 'amount', label: 'Monto', render: (v) => formatEuro(v) },
-    { key: 'date', label: 'Fecha' },
+    { key: 'date', label: 'Pagado' },
+    { key: 'period', label: 'Período', render: (_, row) =>
+        (row.period_start && row.period_end)
+          ? `${row.period_start} → ${row.period_end}`
+          : '—'
+    },
     { key: 'recurring', label: 'Recurrente', render: (v) => v ? 'Sí' : 'No' },
   ];
 
@@ -221,19 +214,6 @@ export default function IngestaPage() {
           </>
         )}
 
-        {activeSubTab === 'pagos_equipo' && (
-          <>
-            <h3 className="text-sm font-bold text-yellow-400 mb-4">
-              {editData ? 'Editar Pago' : 'Nuevo Pago Equipo'}
-            </h3>
-            <TeamPaymentForm
-              onSubmit={(data) => handleSubmit('team_payments', insertTeamPayment, updateTeamPayment, data)}
-              initialData={editData}
-              config={config}
-            />
-          </>
-        )}
-
         {activeSubTab === 'gastos' && (
           <>
             <h3 className="text-sm font-bold text-yellow-400 mb-4">
@@ -273,15 +253,6 @@ export default function IngestaPage() {
           data={setterKpiData}
           onEdit={handleEdit}
           onDelete={(row) => handleDelete(removeSetterKpi, row)}
-        />
-      )}
-
-      {activeSubTab === 'pagos_equipo' && (
-        <DataTable
-          columns={teamPaymentColumns}
-          data={teamPayments}
-          onEdit={handleEdit}
-          onDelete={(row) => handleDelete(removeTeamPayment, row)}
         />
       )}
 
